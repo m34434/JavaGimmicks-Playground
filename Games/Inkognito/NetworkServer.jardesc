@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jardesc>
+<jar path="D:/Eigene Dateien/Eclipse Projects/Inkognito/build/inkognitoNetworkServer.jar"/>
+<options buildIfNeeded="true" compress="true" descriptionLocation="/Inkognito/NetworkServer.jardesc" exportErrors="false" exportWarnings="false" includeDirectoryEntries="false" overwrite="true" saveDescription="true" storeRefactorings="false" useSourceFolders="false"/>
+<storedRefactorings deprecationInfo="true" structuralOnly="false"/>
+<selectedProjects/>
+<manifest generateManifest="false" mainClassHandleIdentifier="=Inkognito/src&lt;de.draexlmaier.inkognito.server.net{NetworkServer.java[NetworkServer" manifestLocation="/Inkognito/etc/server/MANIFEST.MF" manifestVersion="1.0" reuseManifest="true" saveManifest="true" usesManifest="true">
+<sealing sealJar="false">
+<packagesToSeal/>
+<packagesToUnSeal/>
+</sealing>
+</manifest>
+<selectedElements exportClassFiles="true" exportJavaFiles="false" exportOutputFolder="false">
+<javaElement handleIdentifier="=Inkognito/src&lt;de.draexlmaier.inkognito.context.server"/>
+<javaElement handleIdentifier="=Inkognito/src&lt;de.draexlmaier.inkognito.server"/>
+<javaElement handleIdentifier="=Inkognito/src&lt;de.draexlmaier.inkognito.server.processor.net"/>
+<javaElement handleIdentifier="=Inkognito/src&lt;de.draexlmaier.inkognito.context"/>
+<javaElement handleIdentifier="=Inkognito/src&lt;de.draexlmaier.inkognito.context.ai"/>
+<javaElement handleIdentifier="=Inkognito/src&lt;de.draexlmaier.inkognito.context.impl"/>
+<javaElement handleIdentifier="=Inkognito/src&lt;de.draexlmaier.inkognito.message.answer"/>
+<javaElement handleIdentifier="=Inkognito/src&lt;math.util"/>
+<javaElement handleIdentifier="=Inkognito/src&lt;de.draexlmaier.inkognito.context.ai.impl"/>
+<javaElement handleIdentifier="=Inkognito/src&lt;de.draexlmaier.inkognito.server.net"/>
+<javaElement handleIdentifier="=Inkognito/src&lt;de.draexlmaier.inkognito.context.server.impl"/>
+<javaElement handleIdentifier="=Inkognito/src&lt;de.draexlmaier.inkognito.message"/>
+<javaElement handleIdentifier="=Inkognito/src&lt;de.draexlmaier.inkognito.server.processor"/>
+<javaElement handleIdentifier="=Inkognito/src&lt;de.draexlmaier.inkognito.message.message"/>
+<javaElement handleIdentifier="=Inkognito/src&lt;de.draexlmaier.inkognito.model"/>
+<javaElement handleIdentifier="=Inkognito/src&lt;de.draexlmaier.inkognito.server.processor.ai"/>
+</selectedElements>
+</jardesc>
