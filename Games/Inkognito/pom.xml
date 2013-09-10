@@ -6,21 +6,53 @@
 	<artifactId>Inkognito</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	
-	<dependencies>
-		<dependency>
-			<groupId>commons-logging</groupId>
-			<artifactId>commons-logging</artifactId>
-			<version>1.0.4</version>
-		</dependency>
-		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<version>1.2.8</version>
-		</dependency>
-		<dependency>
-			<groupId>net.sf.javagimmicks</groupId>
-			<artifactId>GimmickUtils</artifactId>
-			<version>0.75-SNAPSHOT</version>
-		</dependency>
-	</dependencies>
+	<packaging>pom</packaging>
+	
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>net.sf.javagimmicks.games</groupId>
+				<artifactId>Inkognito-client</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>net.sf.javagimmicks.games</groupId>
+				<artifactId>Inkognito-client-ui</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>net.sf.javagimmicks.games</groupId>
+				<artifactId>Inkognito-common</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>net.sf.javagimmicks.games</groupId>
+				<artifactId>Inkognito-server</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			
+			<dependency>
+				<groupId>commons-logging</groupId>
+				<artifactId>commons-logging</artifactId>
+				<version>1.0.4</version>
+			</dependency>
+			<dependency>
+				<groupId>log4j</groupId>
+				<artifactId>log4j</artifactId>
+				<version>1.2.8</version>
+			</dependency>
+			<dependency>
+				<groupId>net.sf.javagimmicks</groupId>
+				<artifactId>GimmickUtils</artifactId>
+				<version>0.75-SNAPSHOT</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+	
+	<modules>
+		<module>client</module>
+		<module>client-ui</module>
+		<module>common</module>
+		<module>server</module>
+	</modules>
 </project>
