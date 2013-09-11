@@ -16,18 +16,9 @@
 			<groupId>net.sf.javagimmicks.games</groupId>
 			<artifactId>Inkognito-client</artifactId>
 		</dependency>
-
 		<dependency>
-			<groupId>commons-logging</groupId>
-			<artifactId>commons-logging</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>net.sf.javagimmicks</groupId>
-			<artifactId>GimmickUtils</artifactId>
+			<groupId>net.sf.javagimmicks.games</groupId>
+			<artifactId>Inkognito-common</artifactId>
 		</dependency>
 	</dependencies>
 </project>

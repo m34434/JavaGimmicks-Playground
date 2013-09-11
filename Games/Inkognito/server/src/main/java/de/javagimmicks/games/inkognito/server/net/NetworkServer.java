@@ -1,5 +1,6 @@
 package de.javagimmicks.games.inkognito.server.net;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -27,7 +28,8 @@ public class NetworkServer extends Thread
 	{
 		int iPort = (args.length == 1) ? Integer.parseInt(args[0]) : 6201;
 		
-		DOMConfigurator.configure("conf/log4j.xml");
+		new File("log").mkdirs();
+		DOMConfigurator.configure(NetworkServer.class.getClassLoader().getResource("log4j.xml"));
 		new NetworkServer(iPort).start();
 	}
 	
