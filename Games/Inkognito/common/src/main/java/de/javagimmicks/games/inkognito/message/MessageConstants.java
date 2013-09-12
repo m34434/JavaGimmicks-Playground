@@ -1,4 +1,4 @@
-package de.javagimmicks.games.inkognito.message.message;
+package de.javagimmicks.games.inkognito.message;
 
 public interface MessageConstants
 {
