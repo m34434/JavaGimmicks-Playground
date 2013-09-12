@@ -17,7 +17,7 @@ import org.apache.commons.logging.LogFactory;
 import de.javagimmicks.games.inkognito.context.server.ServerContext;
 import de.javagimmicks.games.inkognito.context.server.impl.DefaultServerContext;
 import de.javagimmicks.games.inkognito.message.MessageProcessor;
-import de.javagimmicks.games.inkognito.server.GameHandler;
+import de.javagimmicks.games.inkognito.server.Game;
 import de.javagimmicks.games.inkognito.server.processor.net.SocketMessageProcessor;
 
 public class NetworkServer extends Thread
@@ -134,7 +134,7 @@ public class NetworkServer extends Thread
 			oMessageProcessors.add(m_oFactoryPlayerC.create());
 			oMessageProcessors.add(m_oFactoryPlayerD.create());
 			
-			GameHandler oGameHandler = new GameHandler(oServerContext, oMessageProcessors);
+			Game oGameHandler = new Game(oServerContext, oMessageProcessors);
 			oGameHandler.setGameLogger(LogFactory.getLog("Game"));
 			
 			m_oExecutor.submit(oGameHandler);

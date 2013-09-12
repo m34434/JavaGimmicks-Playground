@@ -13,7 +13,7 @@ import de.javagimmicks.games.inkognito.server.processor.ai.CrazyAIMessageProcess
 import de.javagimmicks.games.inkognito.server.processor.ai.NormalAIMessageProcessor;
 import de.javagimmicks.games.inkognito.server.processor.ai.SmartAIMessageProcessor;
 
-public class ServerTest
+public class AIServerTest
 {
 	public static final Log GAME_LOG = LogFactory.getLog("Game");
 	
@@ -25,8 +25,8 @@ public class ServerTest
 		AbstractAIMessageProcessor oPlayer3 = new NormalAIMessageProcessor();
 		AbstractAIMessageProcessor oPlayer4 = new SmartAIMessageProcessor();
 		
-		List<AbstractAIMessageProcessor> oPlayers = Arrays.asList(new AbstractAIMessageProcessor[] {oPlayer1, oPlayer2, oPlayer3, oPlayer4});
-		GameHandler oGameHandler = new GameHandler(new DefaultServerContext(), oPlayers, 20000);
+		List<AbstractAIMessageProcessor> oPlayers = Arrays.asList(oPlayer1, oPlayer2, oPlayer3, oPlayer4);
+		Game oGameHandler = new Game(new DefaultServerContext(), oPlayers, 20000);
 //		oGameHandler.setGameLogger(GAME_LOG);
 		
 		oGameHandler.run();

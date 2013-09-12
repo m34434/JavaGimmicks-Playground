@@ -41,7 +41,7 @@ import de.javagimmicks.games.inkognito.model.Location;
 import de.javagimmicks.games.inkognito.model.Person;
 import de.javagimmicks.games.inkognito.model.Player;
 
-public class GameHandler implements Runnable
+public class Game implements Runnable
 {
 	private final List<MessageProcessor> m_oMessageProcessors;
 	private final ServerContext m_oServerContext;
@@ -50,7 +50,7 @@ public class GameHandler implements Runnable
 
 	private Log m_oGameLog;
 	
-	public GameHandler(ServerContext oServerContext, final List<? extends MessageProcessor> oMessageProcessors, int iGameCount)
+	public Game(ServerContext oServerContext, final List<? extends MessageProcessor> oMessageProcessors, int iGameCount)
 	{
 		if(oMessageProcessors.size() != Card.getNameCount())
 		{
@@ -67,7 +67,7 @@ public class GameHandler implements Runnable
 		m_iGameCount = iGameCount;
 	}
 	
-	public GameHandler(ServerContext oServerContext, final List<MessageProcessor> oMessageProcessors)
+	public Game(ServerContext oServerContext, final List<MessageProcessor> oMessageProcessors)
 	{
 		this(oServerContext, oMessageProcessors, 1);
 	}
