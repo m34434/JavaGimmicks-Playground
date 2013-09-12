@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.log4j.xml.DOMConfigurator;
+import org.junit.Test;
 
 import de.javagimmicks.games.inkognito.context.server.impl.DefaultServerContext;
 import de.javagimmicks.games.inkognito.server.processor.ai.AbstractAIMessageProcessor;
@@ -13,14 +13,13 @@ import de.javagimmicks.games.inkognito.server.processor.ai.CrazyAIMessageProcess
 import de.javagimmicks.games.inkognito.server.processor.ai.NormalAIMessageProcessor;
 import de.javagimmicks.games.inkognito.server.processor.ai.SmartAIMessageProcessor;
 
-public class DemoServer
+public class ServerTest
 {
 	public static final Log GAME_LOG = LogFactory.getLog("Game");
 	
-	public static void main(String[] args)
+	@Test
+	public void testServerRun()
 	{
-		DOMConfigurator.configure("conf/log4j.xml");
-
 		AbstractAIMessageProcessor oPlayer1 = new CrazyAIMessageProcessor();
 		AbstractAIMessageProcessor oPlayer2 = new CrazyAIMessageProcessor();
 		AbstractAIMessageProcessor oPlayer3 = new NormalAIMessageProcessor();

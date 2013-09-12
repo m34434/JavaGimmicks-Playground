@@ -24,15 +24,6 @@ import de.javagimmicks.games.inkognito.server.processor.net.SocketMessageProcess
 
 public class NetworkServer extends Thread
 {
-	public static void main(String[] args)
-	{
-		int iPort = (args.length == 1) ? Integer.parseInt(args[0]) : 6201;
-		
-		new File("log").mkdirs();
-		DOMConfigurator.configure(NetworkServer.class.getClassLoader().getResource("log4j.xml"));
-		new NetworkServer(iPort).start();
-	}
-	
 	private static final int PLAYER_COUNT = 4;
 	
 	private final int m_iPort;
@@ -118,7 +109,10 @@ public class NetworkServer extends Thread
 			}
 			catch (IOException e)
 			{
-				System.err.println("Error while accepting new connection: " + e.getMessage());
+			    if(!isInterrupted())
+			    {
+			        System.err.println("Error while accepting new connection: " + e.getMessage());
+			    }
 				continue;
 			}
 			
