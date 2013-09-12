@@ -1,6 +1,5 @@
 package de.javagimmicks.games.inkognito.server.net;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -11,7 +10,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.LogFactory;
-import org.apache.log4j.xml.DOMConfigurator;
 
 import de.javagimmicks.games.inkognito.context.server.ServerContext;
 import de.javagimmicks.games.inkognito.context.server.impl.DefaultServerContext;
@@ -24,8 +22,6 @@ import de.javagimmicks.games.inkognito.server.processor.net.SocketMessageProcess
 
 public class NetworkServer extends Thread
 {
-	private static final int PLAYER_COUNT = 4;
-	
 	private final int m_iPort;
 	private final ExecutorService m_oExecutor;
 	
@@ -119,7 +115,7 @@ public class NetworkServer extends Thread
 			// Create list of message processor:
 			// - The network player
 			// - Three AI player (different levels)
-			List<MessageProcessor> oMessageProcessors = new ArrayList<MessageProcessor>(PLAYER_COUNT);
+			List<MessageProcessor> oMessageProcessors = new ArrayList<MessageProcessor>();
 			oMessageProcessors.add(oSocketMessageProcessor);
 			oMessageProcessors.add(new CrazyAIMessageProcessor());
 			oMessageProcessors.add(new NormalAIMessageProcessor());

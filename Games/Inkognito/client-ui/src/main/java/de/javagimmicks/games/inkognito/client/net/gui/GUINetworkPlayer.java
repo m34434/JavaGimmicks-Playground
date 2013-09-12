@@ -60,7 +60,7 @@ public class GUINetworkPlayer extends JFrame implements NetworkPlayer
 		new GUINetworkPlayer(sHost, iPort);
 	}
 	
-	private final JList m_oMainLog;
+	private final JList<Object> m_oMainLog;
 	private final JTextField m_oCommandField = new JTextField();
 	
 	private final JButton m_oSubmitCommand = new JButton("Send command:");
@@ -69,7 +69,7 @@ public class GUINetworkPlayer extends JFrame implements NetworkPlayer
 	private final JToolBar m_oPlayerToolBar = new JToolBar();	
 	private final JTabbedPane m_oLogPane = new JTabbedPane();
 	
-	private final Map<String, JList> m_oLogLists = new HashMap<String, JList>();
+	private final Map<String, JList<Object>> m_oLogLists = new HashMap<String, JList<Object>>();
 	
 	private final String m_sHost;
 	private final int m_iPort;
@@ -95,13 +95,13 @@ public class GUINetworkPlayer extends JFrame implements NetworkPlayer
 	
 	private void logMain(Object oEntry)
 	{
-		ConsoleListModel oModel = (ConsoleListModel)m_oMainLog.getModel();
+		ConsoleListModel<Object> oModel = (ConsoleListModel<Object>)m_oMainLog.getModel();
 		oModel.add(oEntry);
 	}
 	
 	private void logConsole(String sKey, Object oEntry)
 	{
-		JList oList = m_oLogLists.get(sKey);
+		JList<Object> oList = m_oLogLists.get(sKey);
 		
 		if(oList == null)
 		{
@@ -110,7 +110,7 @@ public class GUINetworkPlayer extends JFrame implements NetworkPlayer
 			m_oLogPane.addTab(sKey, new JScrollPane(oList));
 		}
 		
-		ConsoleListModel oModel = (ConsoleListModel)oList.getModel();
+		ConsoleListModel<Object> oModel = (ConsoleListModel<Object>)oList.getModel();
 		oModel.add(oEntry);
 	}
 	
@@ -124,7 +124,7 @@ public class GUINetworkPlayer extends JFrame implements NetworkPlayer
 			{
 				m_oStartButton.setEnabled(false);
 				m_oCommandField.setText("");
-				m_oMainLog.setModel(new ConsoleListModel(m_oMainLog));
+				m_oMainLog.setModel(new ConsoleListModel<Object>(m_oMainLog));
 
 				for(int i = m_oLogPane.getTabCount() - 1; i > 0 ; --i)
 				{
@@ -221,11 +221,11 @@ public class GUINetworkPlayer extends JFrame implements NetworkPlayer
 		getContentPane().add(oWindowContent);
 	}
 	
-	private static JList createLogList()
+	private static JList<Object> createLogList()
 	{
-		JList oResult = new JList();
-		oResult.setModel(new ConsoleListModel(oResult));
-		oResult.setCellRenderer(new ListRenderer());
+		JList<Object> oResult = new JList<Object>();
+		oResult.setModel(new ConsoleListModel<Object>(oResult));
+		oResult.setCellRenderer(new ListRenderer<Object>());
 		oResult.setEnabled(false);
 		oResult.setVisibleRowCount(20);
 		
@@ -359,19 +359,19 @@ public class GUINetworkPlayer extends JFrame implements NetworkPlayer
 		}
 	}
 	
-	private static class ConsoleListModel extends AbstractListModel
+	private static class ConsoleListModel<E> extends AbstractListModel<E>
 	{
 		private static final long serialVersionUID = -1291969235452272493L;
 
-		private final ArrayList<Object> m_oEntries = new ArrayList<Object>();
-		private final JList m_oAssociatedList;
+		private final ArrayList<E> m_oEntries = new ArrayList<E>();
+		private final JList<E> m_oAssociatedList;
 		
-		public ConsoleListModel(final JList oAssociatedList)
+		public ConsoleListModel(final JList<E> oAssociatedList)
 		{
 			m_oAssociatedList = oAssociatedList;
 		}
 
-		public Object getElementAt(int index)
+		public E getElementAt(int index)
 		{
 			return m_oEntries.get(index);
 		}
@@ -381,7 +381,7 @@ public class GUINetworkPlayer extends JFrame implements NetworkPlayer
 			return m_oEntries.size();
 		}
 		
-		public void add(Object o)
+		public void add(E o)
 		{
 			final int iSize = m_oEntries.size();
 			
@@ -459,11 +459,9 @@ public class GUINetworkPlayer extends JFrame implements NetworkPlayer
 		}
 	}
 	
-	private static class ListRenderer implements ListCellRenderer
+	private static class ListRenderer<E> implements ListCellRenderer<E>
 	{
-		private static final long serialVersionUID = -7182329482631115929L;
-
-		public Component getListCellRendererComponent(JList oList, Object oValue, int iIndex, boolean bSelected, boolean bHasFocus)
+		public Component getListCellRendererComponent(JList<? extends E> oList, E oValue, int iIndex, boolean bSelected, boolean bHasFocus)
 		{
 			JPanel oResult = new JPanel(new FlowLayout(FlowLayout.LEADING, 5, 0));
 			oResult.setBackground(Color.WHITE);

@@ -16,7 +16,6 @@ public class NetworkPlayerMessageProcessorAdapter implements NetworkPlayer, Mess
 		m_oMessageProcessor = oMessageProcessor;
 	}
 
-	@SuppressWarnings("unchecked")
 	public String process(String sMessage)
 	{
 		Message oMessage;
@@ -26,7 +25,7 @@ public class NetworkPlayerMessageProcessorAdapter implements NetworkPlayer, Mess
 
 			if(oMessage instanceof AnsweredMessage)
 			{
-				Answer oAnswer = m_oMessageProcessor.processAnsweredMessage((AnsweredMessage)oMessage);
+				Answer oAnswer = m_oMessageProcessor.processAnsweredMessage((AnsweredMessage<?>)oMessage);
 				return (oAnswer == null) ? null : oAnswer.serialize();
 			}
 			else
