@@ -14,9 +14,9 @@ import java.util.Date;
 
 public class NetworkClient
 {
-	public static void runNetworkGame(String host, int port, NetworkPlayer player) throws IOException
+	public static void joinNetworkGame(String host, int port, NetworkPlayer player) throws IOException
 	{
-		new NetworkClient(host, port).runNetworkGame(player);
+		new NetworkClient(host, port).joinNetworkGame(player);
 	}
 	
     public NetworkClient()
@@ -30,7 +30,7 @@ public class NetworkClient
     	this.port = port;
     }
     
-    public void runNetworkGame(NetworkPlayer player) throws IOException
+    public void joinNetworkGame(NetworkPlayer player) throws IOException
     {
         // Logdatei oeffnen, wenn moeglich; ansonsten bleibt es bei log == null.
         try

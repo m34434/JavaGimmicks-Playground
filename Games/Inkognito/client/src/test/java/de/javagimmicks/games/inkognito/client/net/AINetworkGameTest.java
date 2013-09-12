@@ -58,8 +58,11 @@ public class AINetworkGameTest
 
         public Void call() throws Exception
         {
+            // Create a really smart player ;-)
 			SmartAIMessageProcessor oMichael = new SmartAIMessageProcessor("Michael_" + m_iNumber);
-			NetworkClient.runNetworkGame("localhost", 6201, new NetworkPlayerMessageProcessorAdapter(oMichael));
+			
+			// Wrap the player into a NetworkPlayer adapter and let him play a network game
+			NetworkClient.joinNetworkGame("localhost", 6201, new NetworkPlayerMessageProcessorAdapter(oMichael));
 			
 			System.out.println("Finished!");
 			

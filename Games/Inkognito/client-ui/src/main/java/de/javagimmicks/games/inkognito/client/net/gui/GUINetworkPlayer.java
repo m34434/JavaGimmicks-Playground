@@ -339,7 +339,7 @@ public class GUINetworkPlayer extends JFrame implements NetworkPlayer
 		{
 			try
 			{
-				NetworkClient.runNetworkGame(m_sHost, m_iPort, GUINetworkPlayer.this);
+				NetworkClient.joinNetworkGame(m_sHost, m_iPort, GUINetworkPlayer.this);
 			}
 			catch (IOException ex)
 			{
