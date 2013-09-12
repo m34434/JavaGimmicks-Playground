@@ -1,5 +1,6 @@
 package de.javagimmicks.games.inkognito.server.net;
 
+import de.javagimmicks.games.inkognito.server.Logging;
 import de.javagimmicks.games.inkognito.server.processor.ai.CrazyAIMessageProcessor;
 import de.javagimmicks.games.inkognito.server.processor.ai.NormalAIMessageProcessor;
 import de.javagimmicks.games.inkognito.server.processor.ai.SmartAIMessageProcessor;
@@ -10,6 +11,8 @@ public class StartAINetworkServer
     
     public static void main(String[] args) throws IllegalArgumentException, SecurityException, NoSuchMethodException
     {
+        Logging.setup();
+        
         final int iPort = args.length > 0 ? Integer.parseInt(args[0]) : DEFAULT_PORT;
         
         new NetworkServer(iPort, CrazyAIMessageProcessor.class, NormalAIMessageProcessor.class, SmartAIMessageProcessor.class).start();
