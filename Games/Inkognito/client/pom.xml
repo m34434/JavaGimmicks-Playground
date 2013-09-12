@@ -18,6 +18,16 @@
 		</dependency>
 		
 		<dependency>
+			<groupId>net.sf.javagimmicks</groupId>
+			<artifactId>GimmickUtils</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>net.sf.javagimmicks.games</groupId>
+			<artifactId>Inkognito-server</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>net.sf.javagimmicks.games</groupId>
 			<artifactId>Inkognito-server-ai</artifactId>
 			<scope>test</scope>

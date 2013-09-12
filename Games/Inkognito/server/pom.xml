@@ -29,10 +29,5 @@
 			<groupId>net.sf.javagimmicks</groupId>
 			<artifactId>GimmickUtils</artifactId>
 		</dependency>
-		
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-		</dependency>
 	</dependencies>
 </project>
