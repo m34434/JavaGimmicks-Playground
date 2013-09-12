@@ -2,7 +2,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	
-	<artifactId>Inkognito-client</artifactId>
+	<artifactId>Inkognito-server-ai</artifactId>
 	
 	<parent>
 		<groupId>net.sf.javagimmicks.games</groupId>
@@ -14,14 +14,22 @@
 	<dependencies>
 		<dependency>
 			<groupId>net.sf.javagimmicks.games</groupId>
-			<artifactId>Inkognito-common</artifactId>
+			<artifactId>Inkognito-server</artifactId>
+		</dependency>
+	
+		<dependency>
+			<groupId>commons-logging</groupId>
+			<artifactId>commons-logging</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>net.sf.javagimmicks</groupId>
+			<artifactId>GimmickUtils</artifactId>
 		</dependency>
 		
-		<dependency>
-			<groupId>net.sf.javagimmicks.games</groupId>
-			<artifactId>Inkognito-server-ai</artifactId>
-			<scope>test</scope>
-		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>

@@ -18,7 +18,7 @@ public class ServerTest
 	public static final Log GAME_LOG = LogFactory.getLog("Game");
 	
 	@Test
-	public void testServerRun()
+	public void aiServerTestRun()
 	{
 		AbstractAIMessageProcessor oPlayer1 = new CrazyAIMessageProcessor();
 		AbstractAIMessageProcessor oPlayer2 = new CrazyAIMessageProcessor();

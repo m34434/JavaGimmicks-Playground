@@ -6,10 +6,13 @@ import java.util.concurrent.Callable;
 
 import net.sf.javagimmicks.testing.MultiThreadedTestHelper;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import de.javagimmicks.games.inkognito.server.net.NetworkServer;
+import de.javagimmicks.games.inkognito.server.processor.ai.CrazyAIMessageProcessor;
+import de.javagimmicks.games.inkognito.server.processor.ai.NormalAIMessageProcessor;
 import de.javagimmicks.games.inkognito.server.processor.ai.SmartAIMessageProcessor;
 
 public class AINetworkGameTest
@@ -17,20 +20,29 @@ public class AINetworkGameTest
     private static final int PORT = 6201;
     
     private MultiThreadedTestHelper<Void> _helper;
+    private NetworkServer _server;
     
     @Before
-    public void setup()
+    public void setup() throws IllegalArgumentException, SecurityException, NoSuchMethodException
     {
         _helper = new MultiThreadedTestHelper<Void>(true);
+
+        // Setup and start a server with three AI players
+        _server = new NetworkServer(PORT, CrazyAIMessageProcessor.class, NormalAIMessageProcessor.class, SmartAIMessageProcessor.class);
+        _server.start();
+    }
+    
+    @After
+    public void tearDown() throws InterruptedException
+    {
+        // Wait and shutdown the game server
+        Thread.sleep(200);
+        _server.interrupt();
     }
     
     @Test
 	public void testAINetworkGame() throws Exception
 	{
-        // Start the server
-        final NetworkServer server = new NetworkServer(PORT);
-        server.start();
-        
         // Prepare workers == players
         final List<NetworkGameThread> workers = new ArrayList<NetworkGameThread>();
 		for(int i = 1; i <= 1; ++i)
@@ -41,10 +53,6 @@ public class AINetworkGameTest
 		// Apply the workers to the helper and run the multi-threaded test
 		_helper.addWorkers(workers);
 		_helper.executeWorkers();
-		
-		// Wait and shutdown the game server
-		Thread.sleep(200);
-		server.interrupt();
 	}
 	
 	private static class NetworkGameThread implements Callable<Void>

@@ -9,27 +9,40 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import net.sf.javagimmicks.lang.Factory;
+import net.sf.javagimmicks.lang.ReflectionFactory;
+
 import org.apache.commons.logging.LogFactory;
 
 import de.javagimmicks.games.inkognito.context.server.ServerContext;
 import de.javagimmicks.games.inkognito.context.server.impl.DefaultServerContext;
 import de.javagimmicks.games.inkognito.message.MessageProcessor;
 import de.javagimmicks.games.inkognito.server.GameHandler;
-import de.javagimmicks.games.inkognito.server.processor.ai.CrazyAIMessageProcessor;
-import de.javagimmicks.games.inkognito.server.processor.ai.NormalAIMessageProcessor;
-import de.javagimmicks.games.inkognito.server.processor.ai.SmartAIMessageProcessor;
 import de.javagimmicks.games.inkognito.server.processor.net.SocketMessageProcessor;
 
 public class NetworkServer extends Thread
 {
 	private final int m_iPort;
 	private final ExecutorService m_oExecutor;
+    
+	private final Factory<MessageProcessor> m_oFactoryPlayerB;
+    private final Factory<MessageProcessor> m_oFactoryPlayerC;
+    private final Factory<MessageProcessor> m_oFactoryPlayerD;
 	
-	public NetworkServer(final int iPort)
+	public NetworkServer(final int iPort, Factory<MessageProcessor> oFactoryPlayerB, Factory<MessageProcessor> oFactoryPlayerC, Factory<MessageProcessor> oFactoryPlayerD)
 	{
 		m_iPort = iPort;
 //		m_oExecutor = Executors.newCachedThreadPool();
 		m_oExecutor = Executors.newSingleThreadExecutor();
+		
+		m_oFactoryPlayerB = oFactoryPlayerB;
+		m_oFactoryPlayerC = oFactoryPlayerC;
+		m_oFactoryPlayerD = oFactoryPlayerD;
+	}
+	
+	public NetworkServer(final int iPort, final Class<? extends MessageProcessor> oClassPlayerB, final Class<? extends MessageProcessor> oClassPlayerC, final Class<? extends MessageProcessor> oClassPlayerD) throws IllegalArgumentException, SecurityException, NoSuchMethodException
+	{
+	    this(iPort, new ReflectionFactory<MessageProcessor>(oClassPlayerB), new ReflectionFactory<MessageProcessor>(oClassPlayerC), new ReflectionFactory<MessageProcessor>(oClassPlayerD));
 	}
 
 	public void run()
@@ -117,9 +130,9 @@ public class NetworkServer extends Thread
 			// - Three AI player (different levels)
 			List<MessageProcessor> oMessageProcessors = new ArrayList<MessageProcessor>();
 			oMessageProcessors.add(oSocketMessageProcessor);
-			oMessageProcessors.add(new CrazyAIMessageProcessor());
-			oMessageProcessors.add(new NormalAIMessageProcessor());
-			oMessageProcessors.add(new SmartAIMessageProcessor());
+			oMessageProcessors.add(m_oFactoryPlayerB.create());
+			oMessageProcessors.add(m_oFactoryPlayerC.create());
+			oMessageProcessors.add(m_oFactoryPlayerD.create());
 			
 			GameHandler oGameHandler = new GameHandler(oServerContext, oMessageProcessors);
 			oGameHandler.setGameLogger(LogFactory.getLog("Game"));
