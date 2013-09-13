@@ -1,3 +1,4 @@
+package net.sf.javagimmicks.games.maze.run;
 import javax.swing.JFrame;
 
 import net.sf.javagimmicks.games.maze.impl.HexagonalCell;
@@ -15,10 +16,32 @@ public class Run
 {
 	public static void main(String[] args)
 	{
-		MazeUI oMazeUI = createMaze(new TriangularCell(0, 0), 20);
-//		MazeUI oMazeUI = createMaze(new OrthogonalCell(0, 0), 20);
-//		MazeUI oMazeUI = createMaze(new HexagonalCell(12, 0), 12);
+	   int iGeometry = 4;
+	   
+	   if(args.length > 0)
+	   {
+	      iGeometry = Integer.parseInt(args[0]);
+	   }
+	   
+		MazeUI<?> oMazeUI;
 		
+      if(iGeometry == 3)
+      {
+         oMazeUI = createMaze(new TriangularCell(0, 0), 20);
+      }
+      else if(iGeometry == 4)
+      {
+         oMazeUI = createMaze(new OrthogonalCell(0, 0), 20);
+      }
+      else if(iGeometry == 6)
+      {
+         oMazeUI = createMaze(new HexagonalCell(12, 0), 12);
+      }
+      else
+      {
+         return;
+      }
+      
 		MazeMoveKeyListener oMazeKeyListener = new MazeMoveKeyListener(oMazeUI);
 		
 		JFrame oWindow = new JFrame("Maze");
