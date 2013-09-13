@@ -50,6 +50,12 @@
 				<groupId>net.sf.javagimmicks</groupId>
 				<artifactId>GimmickUtils</artifactId>
 				<version>0.74</version>
+				<exclusions>
+					<exclusion>
+						<groupId>junit</groupId>
+						<artifactId>junit</artifactId>
+					</exclusion>
+				</exclusions>
 			</dependency>
 			<dependency>
 				<groupId>junit</groupId>
