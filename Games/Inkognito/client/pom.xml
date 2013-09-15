@@ -19,8 +19,7 @@
 		
 		<dependency>
 			<groupId>net.sf.javagimmicks</groupId>
-			<artifactId>GimmickUtils</artifactId>
-			<scope>test</scope>
+			<artifactId>GimmickUtils-testing</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>net.sf.javagimmicks.games</groupId>
