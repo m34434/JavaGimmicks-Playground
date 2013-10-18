@@ -9,13 +9,13 @@
 	<dependencies>
 		<dependency>
 			<groupId>net.sf.javagimmicks</groupId>
-			<artifactId>GimmickUtils-io</artifactId>
-			<version>0.80</version>
+			<artifactId>gimmicks-io</artifactId>
+			<version>0.90</version>
 		</dependency>
 		<dependency>
 			<groupId>net.sf.javagimmicks</groupId>
-			<artifactId>GimmickUtils-swing</artifactId>
-			<version>0.80</version>
+			<artifactId>gimmicks-swing</artifactId>
+			<version>0.90</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-io</groupId>

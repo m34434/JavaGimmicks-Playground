@@ -9,7 +9,7 @@
 	<packaging>pom</packaging>
 	
 	<properties>
-		<version.gimmickUtils>0.80</version.gimmickUtils>
+		<version.gimmickUtils>0.90</version.gimmickUtils>
 	</properties>
 	
 	<dependencyManagement>
@@ -52,22 +52,22 @@
 			</dependency>
 			<dependency>
 				<groupId>net.sf.javagimmicks</groupId>
-				<artifactId>GimmickUtils-collections</artifactId>
+				<artifactId>gimmicks-collections</artifactId>
 				<version>${version.gimmickUtils}</version>
 			</dependency>
 			<dependency>
 				<groupId>net.sf.javagimmicks</groupId>
-				<artifactId>GimmickUtils-core</artifactId>
+				<artifactId>gimmicks-core</artifactId>
 				<version>${version.gimmickUtils}</version>
 			</dependency>
 			<dependency>
 				<groupId>net.sf.javagimmicks</groupId>
-				<artifactId>GimmickUtils-math</artifactId>
+				<artifactId>gimmicks-math</artifactId>
 				<version>${version.gimmickUtils}</version>
 			</dependency>
 			<dependency>
 				<groupId>net.sf.javagimmicks</groupId>
-				<artifactId>GimmickUtils-testing</artifactId>
+				<artifactId>gimmicks-testing</artifactId>
 				<version>${version.gimmickUtils}</version>
 				<scope>test</scope>
 			</dependency>
