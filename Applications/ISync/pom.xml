@@ -4,18 +4,22 @@
 	
 	<groupId>net.sf.javagimmicks.applications</groupId>
 	<artifactId>ISync</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.2-SNAPSHOT</version>
+	
+	<properties>
+		<version.javagimmicks>0.96-SNAPSHOT</version.javagimmicks>
+	</properties>
 	
 	<dependencies>
 		<dependency>
 			<groupId>net.sf.javagimmicks</groupId>
 			<artifactId>gimmicks-io</artifactId>
-			<version>0.90</version>
+			<version>${version.javagimmicks}</version>
 		</dependency>
 		<dependency>
 			<groupId>net.sf.javagimmicks</groupId>
 			<artifactId>gimmicks-swing</artifactId>
-			<version>0.90</version>
+			<version>${version.javagimmicks}</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-io</groupId>
