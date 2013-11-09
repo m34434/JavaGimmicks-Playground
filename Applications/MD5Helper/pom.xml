@@ -1,0 +1,30 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>net.sf.javagimmicks.applications</groupId>
+	<artifactId>MD5Helper</artifactId>
+	<version>1.0.0-SNAPSHOT</version>
+	
+	<properties>
+		<version.javagimmicks>0.96-SNAPSHOT</version.javagimmicks>
+	</properties>
+	
+	<dependencies>
+		<dependency>
+			<groupId>net.sf.javagimmicks</groupId>
+			<artifactId>gimmicks-io</artifactId>
+			<version>${version.javagimmicks}</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-configuration</groupId>
+			<artifactId>commons-configuration</artifactId>
+			<version>1.9</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+			<version>1.8</version>
+		</dependency>
+	</dependencies>
+</project>
