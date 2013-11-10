@@ -4,8 +4,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.io.IOUtils;
 
 public class MD5FileHelper
 {
@@ -34,12 +38,41 @@ public class MD5FileHelper
 
    public static void createMD5File(final File file) throws IOException
    {
-      final FileOutputStream md5FileOut = new FileOutputStream(getMD5File(file));
+      final Writer md5FileOut = new OutputStreamWriter(new FileOutputStream(file), "US-ASCII");
+
+      try
+      {
+         md5FileOut.write(getMD5String(file));
+      }
+      finally
+      {
+         md5FileOut.close();
+      }
+   }
+
+   public static boolean isChecksumValid(final File file) throws IOException
+   {
+      final File md5File = getMD5File(file);
+
+      return !md5File.isFile() || getMD5String(md5File).equals(readMD5File(md5File));
+   }
+
+   public static String readMD5File(final File md5File) throws IOException
+   {
+      return IOUtils.toString(new InputStreamReader(new FileInputStream(md5File), "US-ASCII"));
+   }
+
+   private static String getMD5String(final File file) throws IOException
+   {
       final FileInputStream fileIn = new FileInputStream(file);
 
-      md5FileOut.write(DigestUtils.md5(fileIn));
-
-      fileIn.close();
-      md5FileOut.close();
+      try
+      {
+         return DigestUtils.md5Hex(fileIn);
+      }
+      finally
+      {
+         fileIn.close();
+      }
    }
 }

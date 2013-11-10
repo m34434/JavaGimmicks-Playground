@@ -7,7 +7,7 @@
 	<version>0.0.2-SNAPSHOT</version>
 	
 	<properties>
-		<version.javagimmicks>0.96-SNAPSHOT</version.javagimmicks>
+		<version.javagimmicks>0.96</version.javagimmicks>
 	</properties>
 	
 	<dependencies>
