@@ -6,16 +6,80 @@ import static org.apache.commons.cli.OptionBuilder.isRequired;
 import static org.apache.commons.cli.OptionBuilder.withDescription;
 import static org.apache.commons.cli.OptionBuilder.withLongOpt;
 
+import java.io.File;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 
+import org.apache.commons.cli.BasicParser;
+import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 
 public class Configuration
 {
+   private final boolean _create;
+   private final boolean _validate;
+   private final boolean _recursive;
+   private final File _root;
+
+   private Configuration(final boolean create, final boolean validate, final boolean recursive, final File root)
+   {
+      this._create = create;
+      this._validate = validate;
+      this._recursive = recursive;
+      this._root = root;
+   }
+
+   public boolean isCreate()
+   {
+      return this._create;
+   }
+
+   public boolean isValidate()
+   {
+      return this._validate;
+   }
+
+   public boolean isRecursive()
+   {
+      return this._recursive;
+   }
+
+   public File getRoot()
+   {
+      return this._root;
+   }
+
+   public static Configuration parse(final String[] args)
+   {
+      final Options cmdLineOptions = buildOptions();
+
+      final CommandLine cmd;
+      try
+      {
+         cmd = new BasicParser().parse(cmdLineOptions, args);
+
+         if (cmd.getArgs().length != 1)
+         {
+            throw new ParseException("No or too much folders specified!");
+         }
+      }
+      catch (final ParseException e)
+      {
+         Configuration.printHelp(System.out, cmdLineOptions);
+         return null;
+      }
+
+      final boolean create = cmd.hasOption("c");
+      final boolean validate = cmd.hasOption("v");
+      final boolean recursive = cmd.hasOption("r");
+
+      return new Configuration(create, validate, recursive, new File(cmd.getArgs()[0]));
+   }
+
    public static Options buildOptions()
    {
       withLongOpt("create");
@@ -52,8 +116,11 @@ public class Configuration
    {
       final PrintWriter pw = new PrintWriter(System.out);
 
-      new HelpFormatter().printHelp(pw, 80, "java -jar [jar-name]", "Parameter description:", options, 3, 3,
-            "JavaGimmicks MD5 Helper", true);
+      final HelpFormatter helpFormatter = new HelpFormatter();
+      helpFormatter.setSyntaxPrefix("Usage: ");
+
+      helpFormatter.printHelp(pw, 80, "java -jar <jar-name> OPTIONS FOLDER", "Option description:", options, 3, 3,
+            "JavaGimmicks MD5 Helper");
 
       pw.flush();
    }

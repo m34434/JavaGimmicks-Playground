@@ -38,7 +38,7 @@ public class MD5FileHelper
 
    public static void createMD5File(final File file) throws IOException
    {
-      final Writer md5FileOut = new OutputStreamWriter(new FileOutputStream(file), "US-ASCII");
+      final Writer md5FileOut = new OutputStreamWriter(new FileOutputStream(getMD5File(file)), "US-ASCII");
 
       try
       {
