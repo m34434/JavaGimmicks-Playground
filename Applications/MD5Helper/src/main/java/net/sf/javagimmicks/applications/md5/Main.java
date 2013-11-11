@@ -21,9 +21,9 @@ public class Main
       traverser.setRecursive(config.isRecursive());
       traverser.setTypeFilter(TypeFilter.FILE);
 
-      if (config.isCreate())
+      if (config.isCreate() || config.isUpdate())
       {
-         traverser.run(new CreateVisitor());
+         traverser.run(new CreateVisitor(config.isUpdate()));
       }
       else if (config.isValidate())
       {
@@ -33,9 +33,21 @@ public class Main
 
    private static class CreateVisitor implements FileVisitor
    {
+      private final boolean _update;
+
+      public CreateVisitor(final boolean update)
+      {
+         this._update = update;
+      }
+
       public void visit(final File file)
       {
          if (MD5FileHelper.isMD5File(file))
+         {
+            return;
+         }
+
+         if (!this._update && MD5FileHelper.getMD5File(file).exists())
          {
             return;
          }

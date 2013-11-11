@@ -7,7 +7,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.security.MessageDigest;
 
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
 
@@ -38,11 +40,12 @@ public class MD5FileHelper
 
    public static void createMD5File(final File file) throws IOException
    {
-      final Writer md5FileOut = new OutputStreamWriter(new FileOutputStream(getMD5File(file)), "US-ASCII");
+      final String md5String = getMD5String(file);
 
+      final Writer md5FileOut = new OutputStreamWriter(new FileOutputStream(getMD5File(file)), "US-ASCII");
       try
       {
-         md5FileOut.write(getMD5String(file));
+         md5FileOut.write(md5String);
       }
       finally
       {
@@ -54,7 +57,7 @@ public class MD5FileHelper
    {
       final File md5File = getMD5File(file);
 
-      return !md5File.isFile() || getMD5String(md5File).equals(readMD5File(md5File));
+      return !md5File.isFile() || getMD5String(file).equals(readMD5File(md5File));
    }
 
    public static String readMD5File(final File md5File) throws IOException
@@ -68,7 +71,20 @@ public class MD5FileHelper
 
       try
       {
-         return DigestUtils.md5Hex(fileIn);
+         final MessageDigest md5Digest = DigestUtils.getMd5Digest();
+
+         final int bufferLength = 8192;
+         final byte[] buffer = new byte[bufferLength];
+
+         for (int count = fileIn.read(buffer, 0, bufferLength); count > -1; count = fileIn
+               .read(buffer, 0, bufferLength))
+         {
+            md5Digest.update(buffer, 0, count);
+         }
+
+         final byte[] md5Bytes = md5Digest.digest();
+
+         return Hex.encodeHexString(md5Bytes);
       }
       finally
       {

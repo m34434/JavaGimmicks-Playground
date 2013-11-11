@@ -21,13 +21,16 @@ import org.apache.commons.cli.ParseException;
 public class Configuration
 {
    private final boolean _create;
+   private final boolean _update;
    private final boolean _validate;
    private final boolean _recursive;
    private final File _root;
 
-   private Configuration(final boolean create, final boolean validate, final boolean recursive, final File root)
+   private Configuration(final boolean create, final boolean update, final boolean validate, final boolean recursive,
+         final File root)
    {
       this._create = create;
+      this._update = update;
       this._validate = validate;
       this._recursive = recursive;
       this._root = root;
@@ -36,6 +39,11 @@ public class Configuration
    public boolean isCreate()
    {
       return this._create;
+   }
+
+   public boolean isUpdate()
+   {
+      return this._update;
    }
 
    public boolean isValidate()
@@ -74,19 +82,26 @@ public class Configuration
       }
 
       final boolean create = cmd.hasOption("c");
+      final boolean update = cmd.hasOption("u");
       final boolean validate = cmd.hasOption("v");
       final boolean recursive = cmd.hasOption("r");
 
-      return new Configuration(create, validate, recursive, new File(cmd.getArgs()[0]));
+      return new Configuration(create, update, validate, recursive, new File(cmd.getArgs()[0]));
    }
 
    public static Options buildOptions()
    {
       withLongOpt("create");
-      withDescription("creates new MD5 files for found files");
+      withDescription("creates new MD5 files for found files that don't yet have an MD5 file");
       hasArg(false);
       isRequired(true);
       final Option createOption = create("c");
+
+      withLongOpt("update");
+      withDescription("creates new or updates existing MD5 files for found files");
+      hasArg(false);
+      isRequired(true);
+      final Option updateOption = create("u");
 
       withLongOpt("validate");
       withDescription("validates any found file which has an according MD5 file");
@@ -94,10 +109,11 @@ public class Configuration
       isRequired(true);
       final Option validateOption = create("v");
 
-      final OptionGroup createValidateOption = new OptionGroup();
-      createValidateOption.setRequired(true);
-      createValidateOption.addOption(createOption);
-      createValidateOption.addOption(validateOption);
+      final OptionGroup mainOptionGroup = new OptionGroup();
+      mainOptionGroup.setRequired(true);
+      mainOptionGroup.addOption(createOption);
+      mainOptionGroup.addOption(updateOption);
+      mainOptionGroup.addOption(validateOption);
 
       withLongOpt("recursive");
       withDescription("recurses into sub-folders");
@@ -106,7 +122,7 @@ public class Configuration
       final Option recursiveOption = create("r");
 
       final Options options = new Options();
-      options.addOptionGroup(createValidateOption);
+      options.addOptionGroup(mainOptionGroup);
       options.addOption(recursiveOption);
 
       return options;
