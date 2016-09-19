@@ -16,11 +16,6 @@
 			<groupId>net.sf.javagimmicks.games</groupId>
 			<artifactId>Inkognito-common</artifactId>
 		</dependency>
-		
-		<dependency>
-			<groupId>net.sf.javagimmicks</groupId>
-			<artifactId>GimmickUtils-testing</artifactId>
-		</dependency>
 		<dependency>
 			<groupId>net.sf.javagimmicks.games</groupId>
 			<artifactId>Inkognito-server</artifactId>
@@ -30,6 +25,11 @@
 			<groupId>net.sf.javagimmicks.games</groupId>
 			<artifactId>Inkognito-server-ai</artifactId>
 			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>net.sf.javagimmicks</groupId>
+			<artifactId>gimmicks-testing</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>

@@ -4,11 +4,12 @@ import java.io.File;
 
 import javax.swing.JTextField;
 
+import net.sf.javagimmicks.event.EventListener;
 import net.sf.javagimmicks.io.folderdiff.FileInfo;
-import net.sf.javagimmicks.io.folderdiff.FolderDiffListener;
+import net.sf.javagimmicks.io.folderdiff.FolderDiffEvent;
 import net.sf.javagimmicks.swing.BoundedEventQueue;
 
-class StatusFolderDiffListener implements FolderDiffListener
+class StatusFolderDiffListener implements EventListener<FolderDiffEvent>
 {
    private final JTextField _txtStatus;
    private final BoundedEventQueue _eventQueue = new BoundedEventQueue(100);
@@ -24,8 +25,20 @@ class StatusFolderDiffListener implements FolderDiffListener
       _eventQueue.stopWorking();
       _eventQueue.startWorking();
    }
+   
+   public void eventOccured(FolderDiffEvent event)
+   {
+      if(event.isFilesCompared())
+      {
+         fileInfosCompared(event.getSourceFileInfo(), event.getTargetFileInfo());
+      }
+      else if(event.isFolderScanned())
+      {
+         folderScanned(event.getScannedFolder());
+      }
+   }
 
-   public void fileInfosCompared(FileInfo fileInfo1, FileInfo fileInfo2)
+   private void fileInfosCompared(FileInfo fileInfo1, FileInfo fileInfo2)
    {
       setText(new StringBuilder()
       .append("Comparing files '")
@@ -36,7 +49,7 @@ class StatusFolderDiffListener implements FolderDiffListener
       
    }
 
-   public void folderScanned(File folder)
+   private void folderScanned(File folder)
    {
       setText(new StringBuilder()
       .append("Scanning folder '")

@@ -27,7 +27,7 @@
 		</dependency>
 		<dependency>
 			<groupId>net.sf.javagimmicks</groupId>
-			<artifactId>GimmickUtils-math</artifactId>
+			<artifactId>gimmicks-math</artifactId>
 		</dependency>
 		
 		<dependency>

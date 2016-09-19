@@ -316,15 +316,15 @@ public class ISyncApplication
                try
                {
                   final FolderDiff folderDiff = new FolderDiffBuilder(sourceFolderFile, targetFolderFile)
-                  .addSourceIncludes(sourceIncludeList)
-                  .addSourceExcludes(sourceExcludeList)
-                  .addTargetIncludes(targetIncludeList)
-                  .addTargetExcludes(targetExcludeList)
-                  .setCompareChecksum(_cbxChecksum.isSelected())
-                  .setCompareSize(_cbxSize.isSelected())
-                  .setCompareLastModified(_cbxLastMod.isSelected())
-                  .setFolderDiffListener(_listener)
-                  .buildFolderDiff();
+                     .addSourceIncludes(sourceIncludeList)
+                     .addSourceExcludes(sourceExcludeList)
+                     .addTargetIncludes(targetIncludeList)
+                     .addTargetExcludes(targetExcludeList)
+                     .setCompareChecksum(_cbxChecksum.isSelected())
+                     .setCompareSize(_cbxSize.isSelected())
+                     .setCompareLastModified(_cbxLastMod.isSelected())
+                     .addListener(_listener)
+                     .buildFolderDiff();
 
                   _listener.reset();
                   
@@ -370,12 +370,16 @@ public class ISyncApplication
          _scanThread.start();
       }
       
-      @SuppressWarnings("deprecation")
       private void stopScan()
       {
          if(_scanThread.isAlive())
          {
-            _scanThread.stop();
+            _scanThread.interrupt();
+            
+            while(_scanThread.isAlive())
+            {
+               Thread.yield();
+            }
          }
          
          cleanUp();
