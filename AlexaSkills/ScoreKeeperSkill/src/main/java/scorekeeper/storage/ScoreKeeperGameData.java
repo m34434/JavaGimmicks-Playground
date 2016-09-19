@@ -12,24 +12,12 @@ public class ScoreKeeperGameData {
     private List<String> players;
     private Map<String, Long> scores;
 
-    public ScoreKeeperGameData() {
-        // public no-arg constructor required for DynamoDBMapper marshalling
-    }
-
-    /**
-     * Creates a new instance of {@link ScoreKeeperGameData} with initialized but empty player and
-     * score information.
-     * 
-     * @return
-     */
-    public static ScoreKeeperGameData newInstance() {
-        ScoreKeeperGameData newInstance = new ScoreKeeperGameData();
-        newInstance.setPlayers(new ArrayList<String>());
-        newInstance.setScores(new HashMap<String, Long>());
-        return newInstance;
-    }
-
     public List<String> getPlayers() {
+        if(players == null)
+        {
+            players = new ArrayList<>();
+        }
+        
         return players;
     }
 
@@ -38,6 +26,11 @@ public class ScoreKeeperGameData {
     }
 
     public Map<String, Long> getScores() {
+        if(scores == null)
+        {
+            scores = new HashMap<>();
+        }
+        
         return scores;
     }
 

@@ -150,7 +150,7 @@ public class ScoreKeeperManager {
         // Load the previous game
         ScoreKeeperGame game = scoreKeeperDao.getScoreKeeperGame(session);
         if (game == null) {
-            game = ScoreKeeperGame.newInstance(session, ScoreKeeperGameData.newInstance());
+            game = ScoreKeeperGame.newInstance(session, new ScoreKeeperGameData());
         }
 
         game.addPlayer(newPlayerName);
@@ -277,7 +277,7 @@ public class ScoreKeeperManager {
     public SpeechletResponse getResetPlayersIntentResponse(Intent intent, Session session) {
         // Remove all players
         ScoreKeeperGame game =
-                ScoreKeeperGame.newInstance(session, ScoreKeeperGameData.newInstance());
+                ScoreKeeperGame.newInstance(session, new ScoreKeeperGameData());
         scoreKeeperDao.saveScoreKeeperGame(game);
 
         String speechText = "New game started without players. Who do you want to add first?";
