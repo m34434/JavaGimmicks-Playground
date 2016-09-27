@@ -10,7 +10,6 @@ import java.util.Queue;
 import java.util.Random;
 
 import de.javagimmicks.games.inkognito.context.GameContext;
-import de.javagimmicks.games.inkognito.context.impl.DefaultGameContext;
 import de.javagimmicks.games.inkognito.message.answer.CardAnswer;
 import de.javagimmicks.games.inkognito.message.answer.LocationAnswer;
 import de.javagimmicks.games.inkognito.message.answer.NameAnswer;
@@ -42,7 +41,7 @@ public class CrazyAIMessageProcessor extends AbstractAIMessageProcessor
 
 	public CrazyAIMessageProcessor(String sPlayerNameBase)
 	{
-		this(new DefaultGameContext(), sPlayerNameBase);
+		this(new GameContext(), sPlayerNameBase);
 	}
 	
 	public CrazyAIMessageProcessor()

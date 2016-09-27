@@ -9,16 +9,14 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import net.sf.javagimmicks.lang.Factory;
-import net.sf.javagimmicks.lang.ReflectionFactory;
-
 import org.apache.commons.logging.LogFactory;
 
 import de.javagimmicks.games.inkognito.context.server.ServerContext;
-import de.javagimmicks.games.inkognito.context.server.impl.DefaultServerContext;
 import de.javagimmicks.games.inkognito.message.MessageProcessor;
 import de.javagimmicks.games.inkognito.server.Game;
 import de.javagimmicks.games.inkognito.server.processor.net.SocketMessageProcessor;
+import net.sf.javagimmicks.lang.Factory;
+import net.sf.javagimmicks.lang.ReflectionFactory;
 
 public class NetworkServer extends Thread
 {
@@ -111,7 +109,7 @@ public class NetworkServer extends Thread
 				
 //				oSocket.setSoTimeout(5000);
 				
-				oServerContext = new DefaultServerContext();
+				oServerContext = new ServerContext();
 				
 				oSocketMessageProcessor = new SocketMessageProcessor(oSocket);
 				oSocketMessageProcessor.setMessageLogger(LogFactory.getLog("Player1"));

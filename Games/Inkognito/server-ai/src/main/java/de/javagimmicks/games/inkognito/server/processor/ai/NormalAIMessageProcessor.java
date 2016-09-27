@@ -7,22 +7,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
-import de.javagimmicks.games.inkognito.context.CardShowingContext;
 import de.javagimmicks.games.inkognito.context.GameContext;
-import de.javagimmicks.games.inkognito.context.LocationsContext;
-import de.javagimmicks.games.inkognito.context.PlayerContext;
-import de.javagimmicks.games.inkognito.context.RoundContext;
-import de.javagimmicks.games.inkognito.context.VisitsContext;
-import de.javagimmicks.games.inkognito.context.ai.AICardShowingContext;
 import de.javagimmicks.games.inkognito.context.ai.CardAnalysingContext;
-import de.javagimmicks.games.inkognito.context.ai.impl.AICardShowingContextDecorator;
-import de.javagimmicks.games.inkognito.context.ai.impl.DefaultCardAnalysingContext;
-import de.javagimmicks.games.inkognito.context.impl.DefaultCardShowingContext;
-import de.javagimmicks.games.inkognito.context.impl.DefaultGameContext;
-import de.javagimmicks.games.inkognito.context.impl.DefaultLocationsContext;
-import de.javagimmicks.games.inkognito.context.impl.DefaultPlayerContext;
-import de.javagimmicks.games.inkognito.context.impl.DefaultRoundContext;
-import de.javagimmicks.games.inkognito.context.impl.DefaultVisitsContext;
 import de.javagimmicks.games.inkognito.message.answer.CardAnswer;
 import de.javagimmicks.games.inkognito.message.answer.ShowAnswer;
 import de.javagimmicks.games.inkognito.message.message.AskShowEnvoyMessage;
@@ -34,17 +20,16 @@ import de.javagimmicks.games.inkognito.model.Player;
 
 public class NormalAIMessageProcessor extends CrazyAIMessageProcessor
 {
-	protected final CardAnalysingContext m_oCardAnalysingContext;
+	protected final CardAnalysingContext m_oCardAnalysingContext = new CardAnalysingContext();
 	
 	protected NormalAIMessageProcessor(GameContext oGameContext, String sPlayerNameBase)
 	{
-		super(decorateGameContext(oGameContext), sPlayerNameBase);
-		m_oCardAnalysingContext = ((AICardShowingContext)m_oGameContext.getCardShowingContext()).getCardAnalysingContext();
+		super(oGameContext, sPlayerNameBase);
 	}
 
 	public NormalAIMessageProcessor(String sPlayerNameBase)
 	{
-		this(createGameContext(), sPlayerNameBase);
+		this(new GameContext(), sPlayerNameBase);
 	}
 	
 	public NormalAIMessageProcessor()
@@ -202,74 +187,5 @@ public class NormalAIMessageProcessor extends CrazyAIMessageProcessor
 				return oPlayerList.size();
 			}
 		};
-	}
-
-	private static GameContext createGameContext()
-	{
-		PlayerContext oPlayerContext = new DefaultPlayerContext();
-		LocationsContext oLocationsContext = new DefaultLocationsContext();
-		AICardShowingContext oCardShowingContext = new AICardShowingContextDecorator(new DefaultCardShowingContext(), new DefaultCardAnalysingContext());
-		VisitsContext oVisitsContext = new DefaultVisitsContext(oLocationsContext);
-		RoundContext oRoundContext = new DefaultRoundContext(oVisitsContext, oLocationsContext, oPlayerContext);
-		
-		return new DefaultGameContext(oPlayerContext, oCardShowingContext, oLocationsContext, oVisitsContext, oRoundContext);
-	}
-	
-	private static GameContext decorateGameContext(final GameContext oGameContext)
-	{
-		if(oGameContext.getCardShowingContext() instanceof AICardShowingContext)
-		{
-			return oGameContext;
-		}
-
-		return new AICardShowingContextGameContextDecorator(oGameContext, new DefaultCardAnalysingContext());
-	}
-	
-	protected static class AICardShowingContextGameContextDecorator implements GameContext
-	{
-		private final GameContext m_oBaseContext;
-		private final CardAnalysingContext m_oCardAnalysingContext;
-		
-		public AICardShowingContextGameContextDecorator(final GameContext oBaseContext, CardAnalysingContext oCardAnalysingContext)
-		{
-			m_oBaseContext = oBaseContext;
-			m_oCardAnalysingContext = oCardAnalysingContext;
-		}
-
-		public CardShowingContext getCardShowingContext()
-		{
-			return new AICardShowingContextDecorator(m_oBaseContext.getCardShowingContext(), m_oCardAnalysingContext);
-		}
-
-		public LocationsContext getLocationsContext()
-		{
-			return m_oBaseContext.getLocationsContext();
-		}
-
-		public PlayerContext getPlayerContext()
-		{
-			return m_oBaseContext.getPlayerContext();
-		}
-
-		public RoundContext getRoundContext()
-		{
-			return m_oBaseContext.getRoundContext();
-		}
-
-		public VisitsContext getVisitsContext()
-		{
-			return m_oBaseContext.getVisitsContext();
-		}
-
-		public void reset()
-		{
-			m_oBaseContext.reset();
-			m_oCardAnalysingContext.reset();
-		}
-		
-		public GameContext getBaseContext()
-		{
-			return m_oBaseContext;
-		}
 	}
 }

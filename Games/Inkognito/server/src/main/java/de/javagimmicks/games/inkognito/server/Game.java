@@ -59,7 +59,7 @@ public class Game implements Runnable
 		
 		if(iGameCount < 1)
 		{
-			throw new IllegalArgumentException("Number of games to player must be greater than 0!");
+			throw new IllegalArgumentException("Number of games to play must be greater than 0!");
 		}
 		
 		m_oMessageProcessors = new ArrayList<MessageProcessor>(oMessageProcessors);
