@@ -1,12 +1,14 @@
 package net.sf.javagimmicks.alexa.statefulskill;
 
+import static net.sf.javagimmicks.alexa.process.ProcessEngineFactory.deployFromClassPath;
 import static net.sf.javagimmicks.alexa.process.ProcessEngineFactory.getProcessEngine;
 import static net.sf.javagimmicks.alexa.process.model.ProcessSnapshot.jsonToProcess;
 import static net.sf.javagimmicks.alexa.process.model.ProcessSnapshot.processToJson;
+import static net.sf.javagimmicks.alexa.statefulskill.process.ProcessConstants.TSK_DO_SPECIAL_WORK;
+import static net.sf.javagimmicks.alexa.statefulskill.process.ProcessConstants.TSK_DO_WORK;
+import static net.sf.javagimmicks.alexa.statefulskill.process.ProcessConstants.VAR_FINISHED;
 
 import java.io.IOException;
-
-import net.sf.javagimmicks.alexa.process.model.ProcessSnapshot;
 
 import org.camunda.bpm.engine.ProcessEngine;
 import org.camunda.bpm.engine.RepositoryService;
@@ -14,7 +16,6 @@ import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.TaskService;
 import org.camunda.bpm.engine.repository.Deployment;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
-import org.camunda.bpm.engine.variable.Variables;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -26,11 +27,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class TheTest
 {
-    private static final String TSK_DO_WORK = "utskDoWork";
-    private static final String TSK_DO_SPECIAL_WORK = "utskDoSpecialWork";
-
-    private static final String VAR_FINISHED = "finished";
-
     private ObjectMapper m = new ObjectMapper();
     private ProcessEngine pe = getProcessEngine();
     private RuntimeService runtimeService = pe.getRuntimeService();
@@ -40,7 +36,7 @@ public class TheTest
     @Before
     public void setup()
     {
-        repositoryService.createDeployment().addInputStream("SkillDemo.bpmn", getClass().getResourceAsStream("SkillDemo.bpmn")).deploy();
+        deployFromClassPath(pe, getClass().getClassLoader(), "SkillDemo.bpmn");
     }
     
     @After
@@ -55,7 +51,7 @@ public class TheTest
     @Test
     public void testProcessEngineNormal() throws JsonGenerationException, JsonMappingException, IOException
     {
-        final ProcessInstance pi = runtimeService.startProcessInstanceByKey("prcDemoSkill", Variables.putValue(VAR_FINISHED, false));
+        final ProcessInstance pi = runtimeService.startProcessInstanceByKey("prcDemoSkill");
         final String specialTaskId = taskService.createTaskQuery().taskDefinitionKey(TSK_DO_SPECIAL_WORK).singleResult().getId();
         taskService.setVariableLocal(specialTaskId, "myVar", "... is so cool!");
         
@@ -80,7 +76,7 @@ public class TheTest
     @Test
     public void testProcessEngineWithStopNormal() throws JsonGenerationException, JsonMappingException, IOException
     {
-        ProcessInstance pi = runtimeService.startProcessInstanceByKey("prcDemoSkill", Variables.putValue(VAR_FINISHED, false));
+        ProcessInstance pi = runtimeService.startProcessInstanceByKey("prcDemoSkill");
         String specialTaskId = taskService.createTaskQuery().taskDefinitionKey(TSK_DO_SPECIAL_WORK).singleResult().getId();
         taskService.setVariableLocal(specialTaskId, "myVar", "... is so cool!");
         

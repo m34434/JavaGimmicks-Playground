@@ -6,8 +6,6 @@ import org.camunda.bpm.engine.ProcessEngine;
 import org.camunda.bpm.engine.ProcessEngineConfiguration;
 import org.camunda.bpm.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration;
 import org.camunda.bpm.engine.impl.history.HistoryLevel;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class ProcessEngineFactory implements Supplier<ProcessEngine>
 {
@@ -18,11 +16,9 @@ public class ProcessEngineFactory implements Supplier<ProcessEngine>
         return INSTANCE.get();
     }
     
-    private final Logger log = LoggerFactory.getLogger(getClass());
     private final ProcessEngine pe;
     
-    @Deprecated
-    public ProcessEngineFactory()
+    private ProcessEngineFactory()
     {
         final StandaloneInMemProcessEngineConfiguration cfg = new StandaloneInMemProcessEngineConfiguration();
         cfg.setDatabaseSchemaUpdate(ProcessEngineConfiguration.DB_SCHEMA_UPDATE_CREATE_DROP);
@@ -37,5 +33,10 @@ public class ProcessEngineFactory implements Supplier<ProcessEngine>
     public ProcessEngine get()
     {
         return pe;
+    }
+    
+    public static void deployFromClassPath(ProcessEngine pe, ClassLoader c, String processName)
+    {
+        pe.getRepositoryService().createDeployment().addInputStream(processName, c.getResourceAsStream("processes/" + processName)).deploy();
     }
 }
