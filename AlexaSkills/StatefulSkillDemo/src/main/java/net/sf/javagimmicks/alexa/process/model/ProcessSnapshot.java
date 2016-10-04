@@ -1,34 +1,45 @@
 package net.sf.javagimmicks.alexa.process.model;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.camunda.bpm.engine.ProcessEngine;
 import org.camunda.bpm.engine.RuntimeService;
+import org.camunda.bpm.engine.TaskService;
 import org.camunda.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.camunda.bpm.engine.runtime.Execution;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.camunda.bpm.engine.runtime.ProcessInstantiationBuilder;
+import org.camunda.bpm.engine.task.Task;
+
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class ProcessSnapshot
 {
-    private String processId;
+    private String processDefinitionKey;
     
     private String businessKey;
     
     private Map<String, Object> variables = new HashMap<>();
 
     private List<ExecutionSnapshot> executions;
+    
+    private List<TaskSnapshot> tasks;
 
-    public String getProcessId()
+    public String getProcessDefinitionKey()
     {
-        return processId;
+        return processDefinitionKey;
     }
 
-    public void setProcessId(String processId)
+    public void setProcessDefinitionKey(String processDefinitionKey)
     {
-        this.processId = processId;
+        this.processDefinitionKey = processDefinitionKey;
     }
 
     public String getBusinessKey()
@@ -48,7 +59,14 @@ public class ProcessSnapshot
 
     public void setVariables(Map<String, Object> variables)
     {
-        this.variables = variables;
+        if(variables == null || variables.isEmpty())
+        {
+            this.variables = null;
+        }
+        else
+        {
+            this.variables = variables;
+        }
     }
 
     public List<ExecutionSnapshot> getExecutions()
@@ -58,48 +76,121 @@ public class ProcessSnapshot
 
     public void setExecutions(List<ExecutionSnapshot> executions)
     {
-        this.executions = executions;
+        if(executions == null || executions.isEmpty())
+        {
+            this.executions = null;
+        }
+        else
+        {
+            this.executions = executions;
+        }
     }
     
-    public ProcessInstance startProcessInstance(RuntimeService r)
+    public List<TaskSnapshot> getTasks()
     {
-        final ProcessInstantiationBuilder pib = r.createProcessInstanceById(processId);
-        pib.businessKey(businessKey);
-        pib.setVariables(variables);
-        
-        for(ExecutionSnapshot es : executions)
+        return tasks;
+    }
+
+    public void setTasks(List<TaskSnapshot> tasks)
+    {
+        if(tasks == null || tasks.isEmpty())
         {
-            es.submit(pib);
+            this.tasks = null;
+        }
+        else
+        {
+            this.tasks = tasks;
+        }
+    }
+
+    public ProcessInstance startProcessInstance(ProcessEngine pe)
+    {
+        final RuntimeService runtimeService = pe.getRuntimeService();
+        
+        final ProcessInstantiationBuilder builder = runtimeService.createProcessInstanceByKey(processDefinitionKey);
+        builder.businessKey(businessKey);
+        builder.setVariables(variables);
+        
+        for(ExecutionSnapshot executionSnapshot : executions)
+        {
+            executionSnapshot.submit(builder);
         }
         
-        return pib.execute(true, true);
+        final ProcessInstance pi = builder.execute(true, true);
+
+        for(TaskSnapshot taskSnapshot : tasks)
+        {
+            taskSnapshot.submit(pe, pi);
+        }
+        
+        return pi;
     }
     
-    public static ProcessSnapshot fromProcessInstance(RuntimeService r, ProcessInstance pi)
+    public static ProcessSnapshot fromProcessInstance(ProcessEngine pe, ProcessInstance pi)
     {
+        final RuntimeService r = pe.getRuntimeService();
+        final TaskService t = pe.getTaskService();
+        
         final String pid = pi.getProcessInstanceId();        
         
         final ProcessSnapshot ps = new ProcessSnapshot();
-        ps.setProcessId(pi.getProcessDefinitionId());
+        ps.setProcessDefinitionKey(pe.getRepositoryService().getProcessDefinition(pi.getProcessDefinitionId()).getKey());
         ps.setBusinessKey(pi.getBusinessKey());
         ps.setVariables(r.getVariables(pid));
-        ps.setExecutions(new ArrayList<>());
+        
+        final List<ExecutionSnapshot> executions = new ArrayList<>();
+        final List<TaskSnapshot> tasks = new ArrayList<>();
         
         for(Execution e : r.createExecutionQuery().processInstanceId(pid).list())
         {
-            final ExecutionSnapshot es = new ExecutionSnapshot();
+            final ExecutionEntity executionEntity = (ExecutionEntity)e;
+            final String activityId = executionEntity.getActivityId();
             
-            final ExecutionEntity ee = (ExecutionEntity)e;
-            es.setActivityId(ee.getActivityId());
-            
-            if(!ee.isProcessInstanceExecution())
+            if(activityId == null)
             {
-                es.setLocalVariables(r.getVariablesLocal(e.getId()));
+                continue;
             }
             
-            ps.getExecutions().add(es);
+            final ExecutionSnapshot executionSnapshot = new ExecutionSnapshot();
+            executionSnapshot.setActivityId(activityId);
+            
+            final String executionId = e.getId();
+            if(!executionEntity.isProcessInstanceExecution())
+            {
+                executionSnapshot.setLocalVariables(r.getVariablesLocal(executionId));
+            }
+            
+            executions.add(executionSnapshot);
+            
+            final Task task = t.createTaskQuery().executionId(executionId).singleResult();
+            if(task != null)
+            {
+                final TaskSnapshot taskSnapshot = new TaskSnapshot();
+                taskSnapshot.setTaskDefinitionKey(task.getTaskDefinitionKey());
+                
+                final Map<String, Object> taskLocalVariables = t.getVariablesLocal(task.getId());
+                
+                if(!taskLocalVariables.isEmpty())
+                {
+                    taskSnapshot.setLocalVariables(taskLocalVariables);
+                    tasks.add(taskSnapshot);
+                }
+            }
         }
         
+        ps.setExecutions(executions);
+        ps.setTasks(tasks);
+
         return ps;
+    }
+    
+    public static String processToJson(ObjectMapper m, ProcessEngine pe, ProcessInstance pi) throws JsonProcessingException
+    {
+        return m.writeValueAsString(fromProcessInstance(pe, pi));
+    }
+    
+    public static ProcessInstance jsonToProcess(ObjectMapper m, ProcessEngine pe, String json) throws JsonParseException, JsonMappingException, IOException
+    {
+        return m.readValue(json, ProcessSnapshot.class).startProcessInstance(pe);
     }
 }

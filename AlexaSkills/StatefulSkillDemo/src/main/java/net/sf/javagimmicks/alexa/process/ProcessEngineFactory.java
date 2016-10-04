@@ -21,7 +21,8 @@ public class ProcessEngineFactory implements Supplier<ProcessEngine>
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final ProcessEngine pe;
     
-    private ProcessEngineFactory()
+    @Deprecated
+    public ProcessEngineFactory()
     {
         final StandaloneInMemProcessEngineConfiguration cfg = new StandaloneInMemProcessEngineConfiguration();
         cfg.setDatabaseSchemaUpdate(ProcessEngineConfiguration.DB_SCHEMA_UPDATE_CREATE_DROP);

@@ -1,6 +1,8 @@
 package net.sf.javagimmicks.alexa.statefulskill;
 
 import static net.sf.javagimmicks.alexa.process.ProcessEngineFactory.getProcessEngine;
+import static net.sf.javagimmicks.alexa.process.model.ProcessSnapshot.jsonToProcess;
+import static net.sf.javagimmicks.alexa.process.model.ProcessSnapshot.processToJson;
 
 import java.io.IOException;
 
@@ -24,6 +26,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class TheTest
 {
+    private static final String TSK_DO_WORK = "utskDoWork";
+    private static final String TSK_DO_SPECIAL_WORK = "utskDoSpecialWork";
+
     private static final String VAR_FINISHED = "finished";
 
     private ObjectMapper m = new ObjectMapper();
@@ -50,22 +55,24 @@ public class TheTest
     @Test
     public void testProcessEngineNormal() throws JsonGenerationException, JsonMappingException, IOException
     {
-        repositoryService.createDeployment().addInputStream("SkillDemo.bpmn", getClass().getResourceAsStream("SkillDemo.bpmn")).deploy();
-        
         final ProcessInstance pi = runtimeService.startProcessInstanceByKey("prcDemoSkill", Variables.putValue(VAR_FINISHED, false));
+        final String specialTaskId = taskService.createTaskQuery().taskDefinitionKey(TSK_DO_SPECIAL_WORK).singleResult().getId();
+        taskService.setVariableLocal(specialTaskId, "myVar", "... is so cool!");
         
         System.out.println(pi.getProcessInstanceId());
-        System.out.println(m.writerWithDefaultPrettyPrinter().writeValueAsString(ProcessSnapshot.fromProcessInstance(runtimeService, pi)));
+        System.out.println(processToJson(m, pe, pi));
         
-        String taskId = taskService.createTaskQuery().singleResult().getId();
+        String taskId = taskService.createTaskQuery().taskDefinitionKey(TSK_DO_WORK).singleResult().getId();
         taskService.complete(taskId);
 
         System.out.println(pi.getProcessInstanceId());
-        System.out.println(m.writerWithDefaultPrettyPrinter().writeValueAsString(ProcessSnapshot.fromProcessInstance(runtimeService, pi)));
+        System.out.println(processToJson(m, pe, pi));
 
-        taskId = taskService.createTaskQuery().singleResult().getId();
+        taskId = taskService.createTaskQuery().taskDefinitionKey(TSK_DO_WORK).singleResult().getId();
         taskService.setVariable(taskId, VAR_FINISHED, true);
         taskService.complete(taskId);
+        
+        taskService.complete(specialTaskId);
         
         Assert.assertEquals(0, runtimeService.createProcessInstanceQuery().count());
     }
@@ -74,28 +81,34 @@ public class TheTest
     public void testProcessEngineWithStopNormal() throws JsonGenerationException, JsonMappingException, IOException
     {
         ProcessInstance pi = runtimeService.startProcessInstanceByKey("prcDemoSkill", Variables.putValue(VAR_FINISHED, false));
+        String specialTaskId = taskService.createTaskQuery().taskDefinitionKey(TSK_DO_SPECIAL_WORK).singleResult().getId();
+        taskService.setVariableLocal(specialTaskId, "myVar", "... is so cool!");
         
-        ProcessSnapshot theState = ProcessSnapshot.fromProcessInstance(runtimeService, pi);
-        final String theStateString = m.writerWithDefaultPrettyPrinter().writeValueAsString(theState);
+        final String theStateString = processToJson(m, pe, pi);
         System.out.println(pi.getProcessInstanceId());
         System.out.println(theStateString);
 
         runtimeService.deleteProcessInstance(pi.getProcessInstanceId(), "Stateful services stops", true);
         Assert.assertEquals(0, runtimeService.createProcessInstanceQuery().count());
+        shutdown();
+        setup();
         
         // RESTORE !!!!
-        theState = m.readValue(theStateString, ProcessSnapshot.class);
-        pi = theState.startProcessInstance(runtimeService);
-        String taskId = taskService.createTaskQuery().singleResult().getId();
+        pi = jsonToProcess(m, pe, theStateString);
+        specialTaskId = taskService.createTaskQuery().taskDefinitionKey(TSK_DO_SPECIAL_WORK).singleResult().getId();
+        
+        String taskId = taskService.createTaskQuery().taskDefinitionKey(TSK_DO_WORK).singleResult().getId();
         taskService.complete(taskId);
 
         System.out.println(pi.getProcessInstanceId());
-        System.out.println(m.writerWithDefaultPrettyPrinter().writeValueAsString(ProcessSnapshot.fromProcessInstance(runtimeService, pi)));
+        System.out.println(processToJson(m, pe, pi));
 
-        taskId = taskService.createTaskQuery().singleResult().getId();
+        taskId = taskService.createTaskQuery().taskDefinitionKey(TSK_DO_WORK).singleResult().getId();
         taskService.setVariable(taskId, VAR_FINISHED, true);
         taskService.complete(taskId);
         
+        taskService.complete(specialTaskId);
+
         Assert.assertEquals(0, runtimeService.createProcessInstanceQuery().count());
     }
 }

@@ -26,7 +26,14 @@ public class ExecutionSnapshot
 
     public void setLocalVariables(Map<String, Object> localVariables)
     {
-        this.localVariables = localVariables;
+        if(localVariables == null || localVariables.isEmpty())
+        {
+            this.localVariables = null;
+        }
+        else
+        {
+            this.localVariables = localVariables;
+        }
     }
     
     public void submit(ProcessInstantiationBuilder pib)
