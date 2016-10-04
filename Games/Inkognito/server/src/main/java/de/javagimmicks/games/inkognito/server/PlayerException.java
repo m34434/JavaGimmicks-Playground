@@ -1,16 +1,16 @@
 package de.javagimmicks.games.inkognito.server;
 
 import de.javagimmicks.games.inkognito.message.UnexpectedAnswerException;
-import de.javagimmicks.games.inkognito.model.Player;
+import de.javagimmicks.games.inkognito.model.Person;
 
 public class PlayerException extends Exception
 {
 	private static final long serialVersionUID = 6962446743545547090L;
 
-	private final Player m_oPlayer;
+	private final Person m_oPlayer;
 	private final boolean m_bWin;
 	
-	public PlayerException(Player oPlayer, UnexpectedAnswerException ex)
+	public PlayerException(Person oPlayer, UnexpectedAnswerException ex)
 	{
 		super(ex.getMessage(), ex);
 		
@@ -18,7 +18,7 @@ public class PlayerException extends Exception
 		m_bWin = false;
 	}
 	
-	public PlayerException(Player oPlayer, String sMessage)
+	public PlayerException(Person oPlayer, String sMessage)
 	{
 		super(sMessage);
 		
@@ -26,7 +26,7 @@ public class PlayerException extends Exception
 		m_bWin = false;
 	}
 
-	public PlayerException(Player oPlayer, String sMessage, boolean bWin)
+	public PlayerException(Person oPlayer, String sMessage, boolean bWin)
 	{
 		super(sMessage);
 		
@@ -34,7 +34,7 @@ public class PlayerException extends Exception
 		m_bWin = bWin;
 	}
 
-	public Player getPlayer()
+	public Person getPlayer()
 	{
 		return m_oPlayer;
 	}

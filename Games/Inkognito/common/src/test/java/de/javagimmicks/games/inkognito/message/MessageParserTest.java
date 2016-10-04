@@ -5,19 +5,18 @@ import static org.junit.Assert.fail;
 
 import java.util.Arrays;
 
-
-import net.sf.javagimmicks.collections.CollectionUtils;
-
 import org.junit.Assert;
 import org.junit.Test;
 
 import de.javagimmicks.games.inkognito.message.message.Message;
 import de.javagimmicks.games.inkognito.message.message.ReportMoveMessage;
 import de.javagimmicks.games.inkognito.model.Location;
+import de.javagimmicks.games.inkognito.model.Person;
+import net.sf.javagimmicks.collections.CollectionUtils;
 
 public class MessageParserTest
 {
-    private static final String USER = "Michael";
+    private static final Person USER = Person.Player1;
 
     @Test
     public void testMessageParser()
@@ -32,7 +31,7 @@ public class MessageParserTest
         
         message = parseMessageParts("moveto!", USER, Location.Rialto);
         Assert.assertTrue("Wrong message type!", message instanceof ReportMoveMessage);
-        Assert.assertEquals(USER, ((ReportMoveMessage)message).getPersonName());
+        Assert.assertEquals(USER, ((ReportMoveMessage)message).getPerson());
         Assert.assertSame(Location.Rialto, ((ReportMoveMessage)message).getLocation());
         
         // TODO: add other message types

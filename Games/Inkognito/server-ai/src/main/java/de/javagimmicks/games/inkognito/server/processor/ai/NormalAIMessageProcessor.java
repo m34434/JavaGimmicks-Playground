@@ -16,7 +16,7 @@ import de.javagimmicks.games.inkognito.message.message.AskShowMessage;
 import de.javagimmicks.games.inkognito.message.message.ReportIdMessage;
 import de.javagimmicks.games.inkognito.model.Card;
 import de.javagimmicks.games.inkognito.model.CardPair;
-import de.javagimmicks.games.inkognito.model.Player;
+import de.javagimmicks.games.inkognito.model.Person;
 
 public class NormalAIMessageProcessor extends CrazyAIMessageProcessor
 {
@@ -40,7 +40,7 @@ public class NormalAIMessageProcessor extends CrazyAIMessageProcessor
 	@Override
 	protected CardAnswer _processAskShowEnvoyMessage(AskShowEnvoyMessage oMessage)
 	{
-		Player oOtherPlayer = getPlayerByName(oMessage.getPlayerName());
+		Person oOtherPlayer = getPlayerByName(oMessage.getPlayerName());
 		
 		// Give the partner as much info as possible
 		if(isMyPartner(oOtherPlayer))
@@ -65,7 +65,7 @@ public class NormalAIMessageProcessor extends CrazyAIMessageProcessor
 	@Override
 	protected ShowAnswer _processAskShowMessage(AskShowMessage oMessage)
 	{
-		Player oOtherPlayer = getPlayerByName(oMessage.getPlayerName());
+		Person oOtherPlayer = getPlayerByName(oMessage.getPlayerName());
 		
 		// Give the partner as much info as possible
 		if(isMyPartner(oOtherPlayer))
@@ -145,7 +145,7 @@ public class NormalAIMessageProcessor extends CrazyAIMessageProcessor
 		return oResult;
 	}
 
-	protected boolean isMyPartner(Player oOtherPlayer)
+	protected boolean isMyPartner(Person oOtherPlayer)
 	{
 		Card oMyNameCard = m_oPlayer.getNameCard();
 		Card oOtherNameCard = oOtherPlayer.getNameCard();
@@ -160,7 +160,7 @@ public class NormalAIMessageProcessor extends CrazyAIMessageProcessor
 	
 	protected boolean isAllKnown()
 	{
-		for(Player oPlayer : m_oOpponents)
+		for(Person oPlayer : m_oOpponents)
 		{
 			if(!oPlayer.isIdKnown())
 			{
@@ -173,7 +173,7 @@ public class NormalAIMessageProcessor extends CrazyAIMessageProcessor
 	
 	protected List<CardPair> getSolutionPairs()
 	{
-		final ArrayList<Player> oPlayerList = new ArrayList<Player>(m_oGameContext.getPlayerContext().getInitialPlayers());
+		final ArrayList<Person> oPlayerList = new ArrayList<Person>(m_oGameContext.getPlayerContext().getInitialPlayers());
 		
 		return new AbstractList<CardPair>()
 		{

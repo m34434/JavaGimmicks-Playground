@@ -10,9 +10,9 @@ import de.javagimmicks.games.inkognito.model.Person;
 
 public class LocationsContext
 {
-   private final Map<Location, List<Person>> m_oLocationToPersons = new HashMap<Location, List<Person>>();
+   private final Map<Location, List<Person>> m_oLocationToPersons = new HashMap<>();
    
-   private final Map<Person, Location> m_oPersonToLocation = new HashMap<Person, Location>();
+   private final Map<Person, Location> m_oPersonToLocation = new HashMap<>();
    
    public void reset()
    {

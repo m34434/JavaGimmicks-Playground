@@ -2,25 +2,20 @@ package de.javagimmicks.games.inkognito.message.message;
 
 import de.javagimmicks.games.inkognito.message.UnexpectedAnswerException;
 import de.javagimmicks.games.inkognito.message.answer.ShowAnswer;
-import de.javagimmicks.games.inkognito.model.Player;
+import de.javagimmicks.games.inkognito.model.Person;
 
 public class AskShowMessage implements AnsweredMessage<ShowAnswer>
 {
-	private final String m_sPlayerName;
+	private final Person player;
 
-	public static AskShowMessage fromPlayer(final Player oAskingPlayer)
+	public AskShowMessage(final Person player)
 	{
-		return new AskShowMessage(oAskingPlayer.getName());
-	}
-	
-	public AskShowMessage(final String sPlayerName)
-	{
-		m_sPlayerName = sPlayerName;
+		this.player = player;
 	}
 
-	public String getPlayerName()
+	public Person getPlayer()
 	{
-		return m_sPlayerName;
+		return player;
 	}
 	
 	public String serialize()
@@ -28,7 +23,7 @@ public class AskShowMessage implements AnsweredMessage<ShowAnswer>
 		return new StringBuffer()
 			.append(SIG_ASK_SHOW)
 			.append(' ')
-			.append(m_sPlayerName)
+			.append(player.name())
 			.toString();
 	}
 

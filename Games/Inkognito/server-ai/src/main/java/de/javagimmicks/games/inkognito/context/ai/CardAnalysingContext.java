@@ -14,21 +14,21 @@ import java.util.Set;
 
 import de.javagimmicks.games.inkognito.model.Card;
 import de.javagimmicks.games.inkognito.model.CardPair;
-import de.javagimmicks.games.inkognito.model.Player;
+import de.javagimmicks.games.inkognito.model.Person;
 import net.sf.javagimmicks.math.Permuter;
 
 public class CardAnalysingContext
 {
-   private ArrayList<Player> m_oPlayers = new ArrayList<Player>();
+   private ArrayList<Person> m_oPlayers = new ArrayList<Person>();
    private LinkedList<List<CardPair>> m_oPossibleSolutions = new LinkedList<List<CardPair>>();
-   private Map<Player, Set<CardPair>> m_oPlayerPossibleSolutions = new HashMap<Player, Set<CardPair>>();
+   private Map<Person, Set<CardPair>> m_oPlayerPossibleSolutions = new HashMap<Person, Set<CardPair>>();
    
    public boolean isSolutionFound()
    {
       return m_oPossibleSolutions.size() == 1;
    }
    
-   public boolean isPlayerIdKnown(Player oPlayer)
+   public boolean isPlayerIdKnown(Person oPlayer)
    {
       // Get the index of the player in the solution combinations
       int iPlayerIndex = m_oPlayers.indexOf(oPlayer);
@@ -57,7 +57,7 @@ public class CardAnalysingContext
       return true;
    }
    
-   public boolean isPlayerNameKnown(Player oPlayer)
+   public boolean isPlayerNameKnown(Person oPlayer)
    {
       // Get the index of the player in the solution combinations
       int iPlayerIndex = m_oPlayers.indexOf(oPlayer);
@@ -86,7 +86,7 @@ public class CardAnalysingContext
       return true;
    }
    
-   public boolean isPlayerTelephoneKnown(Player oPlayer)
+   public boolean isPlayerTelephoneKnown(Person oPlayer)
    {
       // Get the index of the player in the solution combinations
       int iPlayerIndex = m_oPlayers.indexOf(oPlayer);
@@ -115,7 +115,7 @@ public class CardAnalysingContext
       return true;
    }
    
-   public Set<Card> getPossiblePlayerTelephones(Player oPlayer)
+   public Set<Card> getPossiblePlayerTelephones(Person oPlayer)
    {
       Set<Card> oResult = new HashSet<Card>();
       
@@ -127,7 +127,7 @@ public class CardAnalysingContext
       return oResult;
    }
    
-   public Set<Card> getPossiblePlayerNames(Player oPlayer)
+   public Set<Card> getPossiblePlayerNames(Person oPlayer)
    {
       Set<Card> oResult = new HashSet<Card>();
       
@@ -139,13 +139,13 @@ public class CardAnalysingContext
       return oResult;
    }
    
-   public Set<CardPair> getPossiblePlayerId(Player oPlayer)
+   public Set<CardPair> getPossiblePlayerId(Person oPlayer)
    {
       Set<CardPair> oResult = m_oPlayerPossibleSolutions.get(oPlayer);
       return oResult == null ? new HashSet<CardPair>() : oResult;
    }
    
-   public void notifyCardPairSeen(Player oPlayer, CardPair oSeenPair)
+   public void notifyCardPairSeen(Person oPlayer, CardPair oSeenPair)
    {
       // Get the index of the player in the solution combinations
       int iPlayerIndex = m_oPlayers.indexOf(oPlayer);
@@ -179,7 +179,7 @@ public class CardAnalysingContext
       updateKnownInformation();
    }
    
-   public void notifyCardSeen(Player oPlayer, Card oSeenCard)
+   public void notifyCardSeen(Person oPlayer, Card oSeenCard)
    {
       // Get the index of the player in the solution combinations
       int iPlayerIndex = m_oPlayers.indexOf(oPlayer);
@@ -213,7 +213,7 @@ public class CardAnalysingContext
       updateKnownInformation();
    }
    
-   public void init(List<Player> oPlayers, List<Card> oNameCards, List<Card> oTelephoneCards)
+   public void init(List<Person> oPlayers, List<Card> oNameCards, List<Card> oTelephoneCards)
    {
       if(oPlayers.size() != oNameCards.size() || oPlayers.size() != oTelephoneCards.size())
       {
@@ -266,7 +266,7 @@ public class CardAnalysingContext
       {
          // Get the card pair and the respective player
          CardPair oCurrentPlayerId = iterPlayerId.next();
-         Player oCurrentPlayer = m_oPlayers.get(iterPlayerId.previousIndex());
+         Person oCurrentPlayer = m_oPlayers.get(iterPlayerId.previousIndex());
          
          // Get or create the map of remaining possible solutions for that player
          Set<CardPair> oPlayerPossibleSolution = m_oPlayerPossibleSolutions.get(oCurrentPlayer);
@@ -283,7 +283,7 @@ public class CardAnalysingContext
    
    private void updateKnownInformation()
    {
-      for(Player oPlayer : m_oPlayers)
+      for(Person oPlayer : m_oPlayers)
       {
          Set<Card> oPossiblePlayerNames = getPossiblePlayerNames(oPlayer);
          if(oPossiblePlayerNames.size() == 1)
@@ -301,11 +301,11 @@ public class CardAnalysingContext
    
    public static void main(String[] args)
    {
-      Player oPlayer1 = new Player("Crazy1");
-      Player oPlayer2 = new Player("Crazy2");
-      Player oPlayer3 = new Player("Crazy3");
+      Person oPlayer1 = new Person("Crazy1");
+      Person oPlayer2 = new Person("Crazy2");
+      Person oPlayer3 = new Person("Crazy3");
       
-      List<Player> oPlayers = Arrays.asList(new Player[]{oPlayer1, oPlayer2, oPlayer3});
+      List<Person> oPlayers = Arrays.asList(new Person[]{oPlayer1, oPlayer2, oPlayer3});
       List<Card> oNameCards = Arrays.asList(new Card[]{Card.AgentX, Card.ColonelBubble, Card.LordFiddleBottom});
       List<Card> oTelephoneCards = Arrays.asList(new Card[]{Card.T0, Card.T11, Card.T52});
       
@@ -331,7 +331,7 @@ public class CardAnalysingContext
       System.out.println();
    }
    
-   private static void showCard(CardAnalysingContext oContext, Player oPlayer, Card oCard)
+   private static void showCard(CardAnalysingContext oContext, Person oPlayer, Card oCard)
    {
       System.out.println(oPlayer.getName() + " : " + oCard);
       oContext.notifyCardSeen(oPlayer, oCard);
@@ -339,7 +339,7 @@ public class CardAnalysingContext
       printRemainingSolutions(oContext);
    }
 
-   private static void showCardPair(CardAnalysingContext oContext, Player oPlayer, Card oCard1, Card oCard2)
+   private static void showCardPair(CardAnalysingContext oContext, Person oPlayer, Card oCard1, Card oCard2)
    {
       CardPair oCardPair = new CardPair(oCard1, oCard2);
       

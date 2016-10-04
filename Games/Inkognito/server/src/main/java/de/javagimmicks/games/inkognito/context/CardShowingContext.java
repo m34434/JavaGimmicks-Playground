@@ -8,27 +8,34 @@ import java.util.Set;
 import de.javagimmicks.games.inkognito.model.Card;
 import de.javagimmicks.games.inkognito.model.CardPair;
 import de.javagimmicks.games.inkognito.model.CardType;
-import de.javagimmicks.games.inkognito.model.Player;
+import de.javagimmicks.games.inkognito.model.Person;
 
 public class CardShowingContext
 {
-   private final Map<Player, Map<Player, Set<CardPair>>> m_oShownCards = new HashMap<Player, Map<Player, Set<CardPair>>>();
-   private final Map<Player, Map<Player, Set<CardType>>> m_oShownIds = new HashMap<Player, Map<Player, Set<CardType>>>();
+   private final PlayerContext playerContext;
    
+   private final Map<Person, Map<Person, Set<CardPair>>> m_oShownCards = new HashMap<>();
+   private final Map<Person, Map<Person, Set<CardType>>> m_oShownIds = new HashMap<>();
+   
+   public CardShowingContext(PlayerContext playerContext)
+   {
+      this.playerContext = playerContext;
+   }
+
    public void reset()
    {
       m_oShownCards.clear();
       m_oShownIds.clear();
    }
    
-   public boolean mayPlayerShowPair(Player oShowingPlayer, Player oAskingPlayer, CardPair oCardPair)
+   public boolean mayPlayerShowPair(Person oShowingPlayer, Person oAskingPlayer, CardPair oCardPair)
    {
       if(oCardPair.getCard1() == oCardPair.getCard2())
       {
          return false;
       }
       
-      if(!oCardPair.containsCard(oShowingPlayer.getTelephoneCard()) && !oCardPair.containsCard(oShowingPlayer.getNameCard()))
+      if(!oCardPair.containsCard(playerContext.getTelephoneCard(oShowingPlayer)) && !oCardPair.containsCard(playerContext.getNameCard(oShowingPlayer)))
       {
          return false;
       }
@@ -36,19 +43,19 @@ public class CardShowingContext
       return !getCreatePlayerShownCards(oShowingPlayer, oAskingPlayer).contains(oCardPair);
    }
    
-   public void notifiyPlayerShow(Player oShowingPlayer, Player oAskingPlayer, CardPair oCardPair)
+   public void notifiyPlayerShow(Person oShowingPlayer, Person oAskingPlayer, CardPair oCardPair)
    {
       getCreatePlayerShownCards(oShowingPlayer, oAskingPlayer).add(oCardPair);
    }
    
-   public boolean mayPlayerAskId(Player oAskingPlayer, Player oShowingPlayer)
+   public boolean mayPlayerAskId(Person oAskingPlayer, Person oShowingPlayer)
    {
       return getCreatePlayerShownIds(oShowingPlayer, oAskingPlayer).size() <= 1;
    }
    
-   public boolean mayPlayerShowId(Player oShowingPlayer, Player oAskingPlayer, Card oCard)
+   public boolean mayPlayerShowId(Person oShowingPlayer, Person oAskingPlayer, Card oCard)
    {
-      if(!oShowingPlayer.getId().containsCard(oCard))
+      if(!playerContext.getId(oShowingPlayer).containsCard(oCard))
       {
          return false;
       }
@@ -56,14 +63,14 @@ public class CardShowingContext
       return !getCreatePlayerShownIds(oShowingPlayer, oAskingPlayer).contains(oCard.getCardType());
    }
    
-   public void notifiyPlayerShow(Player oShowingPlayer, Player oAskingPlayer, Card oCard)
+   public void notifiyPlayerShow(Person oShowingPlayer, Person oAskingPlayer, Card oCard)
    {
       getCreatePlayerShownIds(oShowingPlayer, oAskingPlayer).add(oCard.getCardType());
    }
    
-   private Set<CardPair> getCreatePlayerShownCards(Player oShowingPlayer, Player oAskingPlayer)
+   private Set<CardPair> getCreatePlayerShownCards(Person oShowingPlayer, Person oAskingPlayer)
    {
-      Map<Player, Set<CardPair>> oPlayerShowCards = getCreatePlayerShownCards(oShowingPlayer);
+      Map<Person, Set<CardPair>> oPlayerShowCards = getCreatePlayerShownCards(oShowingPlayer);
       Set<CardPair> oResult = oPlayerShowCards.get(oAskingPlayer);
       
       if(oResult == null)
@@ -75,22 +82,22 @@ public class CardShowingContext
       return oResult;
    }
    
-   private Map<Player, Set<CardPair>> getCreatePlayerShownCards(Player oPlayer)
+   private Map<Person, Set<CardPair>> getCreatePlayerShownCards(Person oPlayer)
    {
-      Map<Player, Set<CardPair>> oResult = m_oShownCards.get(oPlayer);
+      Map<Person, Set<CardPair>> oResult = m_oShownCards.get(oPlayer);
       
       if(oResult == null)
       {
-         oResult = new HashMap<Player, Set<CardPair>>();
+         oResult = new HashMap<Person, Set<CardPair>>();
          m_oShownCards.put(oPlayer, oResult);
       }
       
       return oResult;
    }
    
-   private Set<CardType> getCreatePlayerShownIds(Player oShowingPlayer, Player oAskingPlayer)
+   private Set<CardType> getCreatePlayerShownIds(Person oShowingPlayer, Person oAskingPlayer)
    {
-      Map<Player, Set<CardType>> oPlayerShowCards = getCreatePlayerShownIds(oShowingPlayer);
+      Map<Person, Set<CardType>> oPlayerShowCards = getCreatePlayerShownIds(oShowingPlayer);
       Set<CardType> oResult = oPlayerShowCards.get(oAskingPlayer);
       
       if(oResult == null)
@@ -102,13 +109,13 @@ public class CardShowingContext
       return oResult;
    }
    
-   private Map<Player, Set<CardType>> getCreatePlayerShownIds(Player oPlayer)
+   private Map<Person, Set<CardType>> getCreatePlayerShownIds(Person oPlayer)
    {
-      Map<Player, Set<CardType>> oResult = m_oShownIds.get(oPlayer);
+      Map<Person, Set<CardType>> oResult = m_oShownIds.get(oPlayer);
       
       if(oResult == null)
       {
-         oResult = new HashMap<Player, Set<CardType>>();
+         oResult = new HashMap<Person, Set<CardType>>();
          m_oShownIds.put(oPlayer, oResult);
       }
       

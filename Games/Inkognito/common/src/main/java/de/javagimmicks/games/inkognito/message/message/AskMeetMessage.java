@@ -2,6 +2,7 @@ package de.javagimmicks.games.inkognito.message.message;
 
 import de.javagimmicks.games.inkognito.message.UnexpectedAnswerException;
 import de.javagimmicks.games.inkognito.message.answer.NameAnswer;
+import de.javagimmicks.games.inkognito.model.Person;
 
 public class AskMeetMessage implements AnsweredMessage<NameAnswer>
 {
@@ -16,7 +17,14 @@ public class AskMeetMessage implements AnsweredMessage<NameAnswer>
 
 	public NameAnswer parseAnswer(String sAnswer) throws UnexpectedAnswerException
 	{
-		return new NameAnswer(sAnswer);
+	   try
+	   {
+	      return new NameAnswer(Person.valueOf(sAnswer));
+	   }
+	   catch(IllegalArgumentException | NullPointerException e)
+	   {
+	      throw new UnexpectedAnswerException(e);
+	   }
 	}
 	
 }

@@ -20,7 +20,7 @@ public class GameContext
    public GameContext()
    {
       m_oPlayerContext = new PlayerContext();
-      m_oCardShowingContext = new CardShowingContext();
+      m_oCardShowingContext = new CardShowingContext(m_oPlayerContext);
       m_oLocationsContext = new LocationsContext();
       m_oVisitsContext = new VisitsContext(m_oLocationsContext);
       m_oRoundContext = new RoundContext(m_oVisitsContext, m_oLocationsContext, m_oPlayerContext);

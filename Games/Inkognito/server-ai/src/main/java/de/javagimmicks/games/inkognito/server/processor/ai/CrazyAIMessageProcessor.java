@@ -24,12 +24,12 @@ import de.javagimmicks.games.inkognito.model.Card;
 import de.javagimmicks.games.inkognito.model.CardPair;
 import de.javagimmicks.games.inkognito.model.CardType;
 import de.javagimmicks.games.inkognito.model.Location;
-import de.javagimmicks.games.inkognito.model.Player;
+import de.javagimmicks.games.inkognito.model.Person;
 
 public class CrazyAIMessageProcessor extends AbstractAIMessageProcessor
 {
 	protected static final Random RANDOM = new Random();
-	protected final Map<Player, Queue<CardPair>> m_oShowAnswers = new HashMap<Player, Queue<CardPair>>();
+	protected final Map<Person, Queue<CardPair>> m_oShowAnswers = new HashMap<Person, Queue<CardPair>>();
 	
 	private List<Card> m_oOpponentTelephoneCards;
 	private List<Card> m_oOppenentNameCards;
@@ -66,7 +66,7 @@ public class CrazyAIMessageProcessor extends AbstractAIMessageProcessor
 
 	protected CardAnswer _processAskShowEnvoyMessage(AskShowEnvoyMessage oMessage)
 	{
-		Player oOtherPlayer = getPlayerByName(oMessage.getPlayerName());
+		Person oOtherPlayer = getPlayerByName(oMessage.getPlayerName());
 		
 		Card oOwnNameCard = m_oPlayer.getNameCard();
 		Card oOwnTelephoneCard = m_oPlayer.getTelephoneCard();
@@ -83,7 +83,7 @@ public class CrazyAIMessageProcessor extends AbstractAIMessageProcessor
 
 	protected ShowAnswer _processAskShowMessage(AskShowMessage oMessage)
 	{
-		Player oOtherPlayer = getPlayerByName(oMessage.getPlayerName());
+		Person oOtherPlayer = getPlayerByName(oMessage.getPlayerName());
 		Queue<CardPair> oShowAnswers = m_oShowAnswers.get(oOtherPlayer);
 		
 		if(oShowAnswers == null)
@@ -98,7 +98,7 @@ public class CrazyAIMessageProcessor extends AbstractAIMessageProcessor
 
 	protected NameAnswer processAskMeetMessage(AskMeetMessage oMessage)
 	{
-		for(Player oOtherPlayer : m_oOpponents)
+		for(Person oOtherPlayer : m_oOpponents)
 		{
 			if(m_oGameContext.getCardShowingContext().mayPlayerAskId(m_oPlayer, oOtherPlayer))
 			{

@@ -12,7 +12,6 @@ import de.javagimmicks.games.inkognito.message.answer.ShowAnswer;
 import de.javagimmicks.games.inkognito.message.message.AnsweredMessage;
 import de.javagimmicks.games.inkognito.message.message.AskMeetMessage;
 import de.javagimmicks.games.inkognito.message.message.AskMoveMessage;
-import de.javagimmicks.games.inkognito.message.message.AskNameMessage;
 import de.javagimmicks.games.inkognito.message.message.AskShowEnvoyMessage;
 import de.javagimmicks.games.inkognito.message.message.AskShowMessage;
 import de.javagimmicks.games.inkognito.message.message.Message;
@@ -20,7 +19,7 @@ import de.javagimmicks.games.inkognito.message.message.ReportEndMessage;
 import de.javagimmicks.games.inkognito.message.message.ReportExitMessage;
 import de.javagimmicks.games.inkognito.message.message.ReportIdMessage;
 import de.javagimmicks.games.inkognito.message.message.ReportMoveMessage;
-import de.javagimmicks.games.inkognito.message.message.ReportNamesMessage;
+import de.javagimmicks.games.inkognito.message.message.ReportNameMessage;
 import de.javagimmicks.games.inkognito.message.message.ReportSeeEnvoyMessage;
 import de.javagimmicks.games.inkognito.message.message.ReportSeeMessage;
 import de.javagimmicks.games.inkognito.message.message.ReportWinLooseMessage;
@@ -83,10 +82,6 @@ public abstract class AbstractDispatchingMessageProcessor implements
 		{
 			return (A) processAskShowMessage((AskShowMessage) oMessage);
 		}
-		else if (oMessage instanceof AskNameMessage)
-		{
-			return (A) processAskNameMessage((AskNameMessage) oMessage);
-		}
 		else
 		{
 			return (A) null;
@@ -95,9 +90,9 @@ public abstract class AbstractDispatchingMessageProcessor implements
 
 	private final void _processMessage(Message oMessage)
 	{
-		if (oMessage instanceof ReportNamesMessage)
+		if (oMessage instanceof ReportNameMessage)
 		{
-			processReportNamesMessage((ReportNamesMessage) oMessage);
+			processReportNameMessage((ReportNameMessage) oMessage);
 		}
 		else if (oMessage instanceof ReportIdMessage)
 		{
@@ -139,10 +134,8 @@ public abstract class AbstractDispatchingMessageProcessor implements
 
 	abstract protected ShowAnswer processAskShowMessage(AskShowMessage oMessage);
 
-	abstract protected NameAnswer processAskNameMessage(AskNameMessage oMessage);
-
-	abstract protected void processReportNamesMessage(
-			ReportNamesMessage oMessage);
+	abstract protected void processReportNameMessage(
+			ReportNameMessage oMessage);
 
 	abstract protected void processReportIdMessage(ReportIdMessage oMessage);
 
