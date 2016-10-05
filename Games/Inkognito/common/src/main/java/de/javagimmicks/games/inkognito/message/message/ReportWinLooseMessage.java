@@ -32,9 +32,9 @@ public class ReportWinLooseMessage implements Message
 		return win;
 	}
 
-	public String getPlayerName()
+	public Person getPlayer()
 	{
-		return player.name();
+		return player;
 	}
 	
 	public CardPair getPlayerId()

@@ -12,6 +12,7 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 
+import de.javagimmicks.games.inkognito.context.PlayerContext;
 import de.javagimmicks.games.inkognito.model.Card;
 import de.javagimmicks.games.inkognito.model.CardPair;
 import de.javagimmicks.games.inkognito.model.Person;
@@ -19,9 +20,16 @@ import net.sf.javagimmicks.math.Permuter;
 
 public class CardAnalysingContext
 {
+   private final PlayerContext playerContext;
+
    private ArrayList<Person> m_oPlayers = new ArrayList<Person>();
    private LinkedList<List<CardPair>> m_oPossibleSolutions = new LinkedList<List<CardPair>>();
    private Map<Person, Set<CardPair>> m_oPlayerPossibleSolutions = new HashMap<Person, Set<CardPair>>();
+   
+   public CardAnalysingContext(PlayerContext playerContext)
+   {
+      this.playerContext = playerContext;
+   }
    
    public boolean isSolutionFound()
    {
@@ -288,28 +296,28 @@ public class CardAnalysingContext
          Set<Card> oPossiblePlayerNames = getPossiblePlayerNames(oPlayer);
          if(oPossiblePlayerNames.size() == 1)
          {
-            oPlayer.setNameCard(oPossiblePlayerNames.iterator().next());
+            playerContext.setNameCard(oPlayer, oPossiblePlayerNames.iterator().next());
          }
          
          Set<Card> oPossiblePlayerTelephones = getPossiblePlayerTelephones(oPlayer);
          if(oPossiblePlayerTelephones.size() == 1)
          {
-            oPlayer.setTelephoneCard(oPossiblePlayerTelephones.iterator().next());
+            playerContext.setTelephoneCard(oPlayer, oPossiblePlayerTelephones.iterator().next());
          }
       }
    }
    
    public static void main(String[] args)
    {
-      Person oPlayer1 = new Person("Crazy1");
-      Person oPlayer2 = new Person("Crazy2");
-      Person oPlayer3 = new Person("Crazy3");
+      Person oPlayer1 = Person.Player1;
+      Person oPlayer2 = Person.Player2;
+      Person oPlayer3 = Person.Player3;
       
       List<Person> oPlayers = Arrays.asList(new Person[]{oPlayer1, oPlayer2, oPlayer3});
       List<Card> oNameCards = Arrays.asList(new Card[]{Card.AgentX, Card.ColonelBubble, Card.LordFiddleBottom});
       List<Card> oTelephoneCards = Arrays.asList(new Card[]{Card.T0, Card.T11, Card.T52});
       
-      CardAnalysingContext oContext = new CardAnalysingContext();
+      CardAnalysingContext oContext = new CardAnalysingContext(new PlayerContext());
       oContext.init(oPlayers, oNameCards, oTelephoneCards);
       
       printRemainingSolutions(oContext);
@@ -333,7 +341,7 @@ public class CardAnalysingContext
    
    private static void showCard(CardAnalysingContext oContext, Person oPlayer, Card oCard)
    {
-      System.out.println(oPlayer.getName() + " : " + oCard);
+      System.out.println(oPlayer + " : " + oCard);
       oContext.notifyCardSeen(oPlayer, oCard);
       
       printRemainingSolutions(oContext);
@@ -343,7 +351,7 @@ public class CardAnalysingContext
    {
       CardPair oCardPair = new CardPair(oCard1, oCard2);
       
-      System.out.println(oPlayer.getName() + " : " + oCardPair);
+      System.out.println(oPlayer + " : " + oCardPair);
       oContext.notifyCardPairSeen(oPlayer, oCardPair);
       
       printRemainingSolutions(oContext);

@@ -33,7 +33,7 @@ public class AIServerTest
 		
 		for(AbstractAIMessageProcessor oProcessor : oPlayers)
 		{
-			System.out.printf("%1$10s: %2$s%n", oProcessor.getPlayerName(), oProcessor.getWinCount());
+			System.out.printf("%1$10s: %2$s%n", oProcessor.getName(), oProcessor.getWinCount());
 		}
 	}
 }

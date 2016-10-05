@@ -2,7 +2,6 @@ package de.javagimmicks.games.inkognito.server.processor.ai;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -29,25 +28,28 @@ import de.javagimmicks.games.inkognito.server.processor.AbstractDispatchingMessa
 
 public abstract class AbstractAIMessageProcessor extends AbstractDispatchingMessageProcessor
 {
-	protected final GameContext m_oGameContext;
+   protected final String name;
+
+   protected final GameContext m_oGameContext;
 	protected Person m_oPlayer;
 	protected List<Person> m_oOpponents;
 	
-	private String m_sPlayerNameBase;
-	private int m_iNameCounter;
-	
 	private int m_iWinCounter;
 	
-	public AbstractAIMessageProcessor(GameContext oGameContext, String sPlayerNameBase)
+	public AbstractAIMessageProcessor(GameContext oGameContext, String name)
 	{
 		m_oGameContext = oGameContext;
-		
-		m_sPlayerNameBase = sPlayerNameBase.replaceAll("\\s", "");
+		this.name = name;
 	}
 	
-	public String getPlayerName()
+	public String getName()
 	{
-		return m_sPlayerNameBase + String.valueOf(m_iNameCounter);
+	   return name;
+	}
+	
+	public Person getPlayer()
+	{
+		return m_oPlayer;
 	}
 
 	public int getWinCount()
@@ -58,6 +60,21 @@ public abstract class AbstractAIMessageProcessor extends AbstractDispatchingMess
 	protected void initNewGame()
 	{
 		m_oGameContext.reset();
+	}
+	
+	protected Card getOwnNameCard()
+	{
+	   return m_oGameContext.getPlayerContext().getNameCard(m_oPlayer);
+	}
+	
+	protected Card getOwnTelephoneCard()
+	{
+	   return m_oGameContext.getPlayerContext().getTelephoneCard(m_oPlayer);
+	}
+	
+	protected CardPair getOwnId()
+	{
+	   return m_oGameContext.getPlayerContext().getId(m_oPlayer);
 	}
 	
 	protected void processReportNameMessage(ReportNameMessage oMessage)
@@ -83,14 +100,13 @@ public abstract class AbstractAIMessageProcessor extends AbstractDispatchingMess
 
 	protected void processReportMoveMessage(ReportMoveMessage oMessage)
 	{
-		String sPersonName = oMessage.getPersonName();
-		Person oPerson = (Envoy.INSTANCE.getName().equals(sPersonName)) ? Envoy.INSTANCE : m_oGameContext.getPlayerContext().getPlayer(sPersonName);
+		Person oPerson = oMessage.getPerson();
 		Location oLocation = oMessage.getLocation();
 		
 		m_oGameContext.getLocationsContext().notifyPersonMove(oLocation, oPerson);
 		m_oGameContext.getVisitsContext().notifyPersonMove(oPerson, oLocation);
 		
-		if(oPerson == Envoy.INSTANCE)
+		if(oPerson == Person.Envoy)
 		{
 			m_oGameContext.getRoundContext().roundFinished();
 		}
@@ -98,8 +114,7 @@ public abstract class AbstractAIMessageProcessor extends AbstractDispatchingMess
 
 	protected void processReportSeeEnvoyMessage(ReportSeeEnvoyMessage oMessage)
 	{
-		String sPlayerName = oMessage.getPlayerName();
-		Person oPlayer = m_oGameContext.getPlayerContext().getPlayer(sPlayerName);
+		Person oPlayer = oMessage.getPlayer();
 		Card oCard = oMessage.getCard();
 		CardType oCardType = oCard.getCardType();
 		
@@ -107,18 +122,17 @@ public abstract class AbstractAIMessageProcessor extends AbstractDispatchingMess
 		
 		if(oCardType == CardType.Telephone)
 		{
-			oPlayer.setTelephoneCard(oCard);
+		   m_oGameContext.getPlayerContext().setTelephoneCard(oPlayer, oCard);
 		}
 		else if(oCardType == CardType.Name)
 		{
-			oPlayer.setNameCard(oCard);
+		   m_oGameContext.getPlayerContext().setNameCard(oPlayer, oCard);
 		}
 	}
 
 	protected void processReportSeeMessage(ReportSeeMessage oMessage)
 	{
-		String sPlayerName = oMessage.getPlayerName();
-		Person oPlayer = m_oGameContext.getPlayerContext().getPlayer(sPlayerName);
+		Person oPlayer = oMessage.getPlayer();
 		CardPair oCardPair = oMessage.getCardPair();
 		
 		m_oGameContext.getCardShowingContext().notifiyPlayerShow(oPlayer, m_oPlayer, oCardPair);
@@ -139,8 +153,7 @@ public abstract class AbstractAIMessageProcessor extends AbstractDispatchingMess
 	{
 		CardAnswer oResult = _processAskShowEnvoyMessage(oMessage);
 		
-		String sAskingPlayerName = oMessage.getPlayerName();
-		Person oAskingPlayer = m_oGameContext.getPlayerContext().getPlayer(sAskingPlayerName);
+		Person oAskingPlayer = oMessage.getPlayer();
 		Card oShownCard = oResult.getCard();
 		
 		m_oGameContext.getCardShowingContext().notifiyPlayerShow(m_oPlayer, oAskingPlayer, oShownCard);
@@ -154,8 +167,7 @@ public abstract class AbstractAIMessageProcessor extends AbstractDispatchingMess
 
 		if(oResult != null && !oResult.isPhoneCall())
 		{
-			String sAskingPlayerName = oMessage.getPlayerName();
-			Person oAskingPlayer = m_oGameContext.getPlayerContext().getPlayer(sAskingPlayerName);
+			Person oAskingPlayer = oMessage.getPlayer();
 			CardPair oShownPair = oResult.getCardPair();
 			
 			m_oGameContext.getCardShowingContext().notifiyPlayerShow(m_oPlayer, oAskingPlayer, oShownPair);
@@ -167,15 +179,10 @@ public abstract class AbstractAIMessageProcessor extends AbstractDispatchingMess
 	
 	protected void processReportWinLooseMessage(ReportWinLooseMessage oMessage)
 	{
-		if(oMessage.isWin() && oMessage.getPlayerName().equals(getPlayerName()))
+		if(oMessage.isWin() && oMessage.getPlayer() == m_oPlayer)
 		{
 			++m_iWinCounter;
 		}
-	}
-
-	protected final Person getPlayerByName(String sPlayerName)
-	{
-		return m_oGameContext.getPlayerContext().getPlayer(sPlayerName);
 	}
 
 	protected abstract LocationAnswer _processAskMoveMessage(AskMoveMessage oMessage);

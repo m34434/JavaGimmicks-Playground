@@ -1,7 +1,6 @@
 package de.javagimmicks.games.inkognito.server;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -167,11 +166,16 @@ public class Game implements Runnable
 		Iterator<Card> iterNameCards = oNameCards.iterator();
 		Iterator<Card> iterTelephoneCards = oTelephoneCards.iterator();
 		
+		PlayerContext playerContext = m_oServerContext.getPlayerContext();
+
 		while(iterPlayers.hasNext())
 		{
 		   Person oPlayer = iterPlayers.next();
 			Card oNameCard = iterNameCards.next();
 			Card oTelephoneCard = iterTelephoneCards.next();
+			
+			playerContext.setNameCard(oPlayer, oNameCard);
+			playerContext.setTelephoneCard(oPlayer, oTelephoneCard);
 			
 			processMessage(oPlayer, new ReportIdMessage(oNameCard, oTelephoneCard));
 		}

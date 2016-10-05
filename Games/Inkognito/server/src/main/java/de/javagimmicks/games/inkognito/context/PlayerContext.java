@@ -29,7 +29,7 @@ public class PlayerContext
       m_oIdCards.clear();
       m_oTelephoneCards.clear();
 
-      for (int i = 0; i < 4; ++i)
+      for (int i = 1; i < 5; ++i)
       {
          m_oPlayerRotationList.add(Person.values()[i]);
       }

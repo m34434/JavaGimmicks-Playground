@@ -17,9 +17,9 @@ import de.javagimmicks.games.inkognito.model.Person;
 
 public class SmartAIMessageProcessor extends NormalAIMessageProcessor
 {
-	public SmartAIMessageProcessor(String sNameBase)
+	public SmartAIMessageProcessor(String name)
 	{
-		super(sNameBase);
+		super(name);
 	}
 	
 	public SmartAIMessageProcessor()
@@ -37,7 +37,7 @@ public class SmartAIMessageProcessor extends NormalAIMessageProcessor
 		{
 			if(m_oGameContext.getCardShowingContext().mayPlayerAskId(m_oPlayer, oPlayer))
 			{
-				return new NameAnswer(oPlayer.getName());
+				return new NameAnswer(oPlayer);
 			}
 		}
 		
