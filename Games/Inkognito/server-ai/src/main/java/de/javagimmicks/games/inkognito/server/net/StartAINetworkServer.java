@@ -15,6 +15,6 @@ public class StartAINetworkServer
         
         final int iPort = args.length > 0 ? Integer.parseInt(args[0]) : DEFAULT_PORT;
         
-        new NetworkServer(iPort, CrazyAIMessageProcessor.class, NormalAIMessageProcessor.class, SmartAIMessageProcessor.class).start();
+        NetworkServer.fromDispatchedProcessors(iPort, CrazyAIMessageProcessor.class, NormalAIMessageProcessor.class, SmartAIMessageProcessor.class).start();
     }
 }

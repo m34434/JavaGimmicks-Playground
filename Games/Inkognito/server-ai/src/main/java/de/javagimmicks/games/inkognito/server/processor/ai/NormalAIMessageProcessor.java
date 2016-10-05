@@ -93,7 +93,7 @@ public class NormalAIMessageProcessor extends CrazyAIMessageProcessor
 	}
 
 	@Override
-	protected void processReportIdMessage(ReportIdMessage oMessage)
+	public void processReportIdMessage(ReportIdMessage oMessage)
 	{
 		super.processReportIdMessage(oMessage);
 

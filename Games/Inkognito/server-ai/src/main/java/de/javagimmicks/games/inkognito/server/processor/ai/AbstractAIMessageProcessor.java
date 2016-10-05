@@ -7,6 +7,7 @@ import java.util.List;
 
 import de.javagimmicks.games.inkognito.context.GameContext;
 import de.javagimmicks.games.inkognito.context.PlayerContext;
+import de.javagimmicks.games.inkognito.message.DispatchedMessageProcessor;
 import de.javagimmicks.games.inkognito.message.answer.CardAnswer;
 import de.javagimmicks.games.inkognito.message.answer.LocationAnswer;
 import de.javagimmicks.games.inkognito.message.answer.ShowAnswer;
@@ -24,9 +25,8 @@ import de.javagimmicks.games.inkognito.model.CardPair;
 import de.javagimmicks.games.inkognito.model.CardType;
 import de.javagimmicks.games.inkognito.model.Location;
 import de.javagimmicks.games.inkognito.model.Person;
-import de.javagimmicks.games.inkognito.server.processor.AbstractDispatchingMessageProcessor;
 
-public abstract class AbstractAIMessageProcessor extends AbstractDispatchingMessageProcessor
+public abstract class AbstractAIMessageProcessor implements DispatchedMessageProcessor
 {
    protected final String name;
 
@@ -77,7 +77,7 @@ public abstract class AbstractAIMessageProcessor extends AbstractDispatchingMess
 	   return m_oGameContext.getPlayerContext().getId(m_oPlayer);
 	}
 	
-	protected void processReportNameMessage(ReportNameMessage oMessage)
+	public void processReportNameMessage(ReportNameMessage oMessage)
 	{
 		// Get the own player object
 		m_oPlayer = oMessage.getPlayer();
@@ -89,7 +89,7 @@ public abstract class AbstractAIMessageProcessor extends AbstractDispatchingMess
 		m_oOpponents = Collections.unmodifiableList(oOpponents);
 	}
 
-	protected void processReportIdMessage(ReportIdMessage oMessage)
+	public void processReportIdMessage(ReportIdMessage oMessage)
 	{
 		initNewGame();
 
@@ -98,7 +98,7 @@ public abstract class AbstractAIMessageProcessor extends AbstractDispatchingMess
       playerContext.setTelephoneCard(m_oPlayer, oMessage.getTelephoneCard());
 	}
 
-	protected void processReportMoveMessage(ReportMoveMessage oMessage)
+	public void processReportMoveMessage(ReportMoveMessage oMessage)
 	{
 		Person oPerson = oMessage.getPerson();
 		Location oLocation = oMessage.getLocation();
@@ -112,7 +112,7 @@ public abstract class AbstractAIMessageProcessor extends AbstractDispatchingMess
 		}
 	}
 
-	protected void processReportSeeEnvoyMessage(ReportSeeEnvoyMessage oMessage)
+	public void processReportSeeEnvoyMessage(ReportSeeEnvoyMessage oMessage)
 	{
 		Person oPlayer = oMessage.getPlayer();
 		Card oCard = oMessage.getCard();
@@ -130,7 +130,7 @@ public abstract class AbstractAIMessageProcessor extends AbstractDispatchingMess
 		}
 	}
 
-	protected void processReportSeeMessage(ReportSeeMessage oMessage)
+	public void processReportSeeMessage(ReportSeeMessage oMessage)
 	{
 		Person oPlayer = oMessage.getPlayer();
 		CardPair oCardPair = oMessage.getCardPair();
@@ -138,7 +138,7 @@ public abstract class AbstractAIMessageProcessor extends AbstractDispatchingMess
 		m_oGameContext.getCardShowingContext().notifiyPlayerShow(oPlayer, m_oPlayer, oCardPair);
 	}
 
-	final protected LocationAnswer processAskMoveMessage(AskMoveMessage oMessage)
+	public LocationAnswer processAskMoveMessage(AskMoveMessage oMessage)
 	{
 		LocationAnswer oResult = _processAskMoveMessage(oMessage);
 		Location oTargetLocation = oResult.getLocation();
@@ -149,7 +149,7 @@ public abstract class AbstractAIMessageProcessor extends AbstractDispatchingMess
 		return oResult;
 	}
 
-	final protected CardAnswer processAskShowEnvoyMessage(AskShowEnvoyMessage oMessage)
+	public CardAnswer processAskShowEnvoyMessage(AskShowEnvoyMessage oMessage)
 	{
 		CardAnswer oResult = _processAskShowEnvoyMessage(oMessage);
 		
@@ -161,7 +161,7 @@ public abstract class AbstractAIMessageProcessor extends AbstractDispatchingMess
 		return oResult;
 	}
 
-	final protected ShowAnswer processAskShowMessage(AskShowMessage oMessage)
+	public ShowAnswer processAskShowMessage(AskShowMessage oMessage)
 	{
 		ShowAnswer oResult = _processAskShowMessage(oMessage);
 
@@ -177,7 +177,7 @@ public abstract class AbstractAIMessageProcessor extends AbstractDispatchingMess
 		return oResult;
 	}
 	
-	protected void processReportWinLooseMessage(ReportWinLooseMessage oMessage)
+	public void processReportWinLooseMessage(ReportWinLooseMessage oMessage)
 	{
 		if(oMessage.isWin() && oMessage.getPlayer() == m_oPlayer)
 		{

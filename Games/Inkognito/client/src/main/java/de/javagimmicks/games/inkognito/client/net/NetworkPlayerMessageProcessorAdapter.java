@@ -1,5 +1,7 @@
 package de.javagimmicks.games.inkognito.client.net;
 
+import de.javagimmicks.games.inkognito.message.DispatchedMessageProcessor;
+import de.javagimmicks.games.inkognito.message.DispatchedMessageProcessorAdapter;
 import de.javagimmicks.games.inkognito.message.MessageConstants;
 import de.javagimmicks.games.inkognito.message.MessageParser;
 import de.javagimmicks.games.inkognito.message.MessageProcessor;
@@ -11,10 +13,15 @@ public class NetworkPlayerMessageProcessorAdapter implements NetworkPlayer, Mess
 {
 	protected final MessageProcessor m_oMessageProcessor;
 	
-	public NetworkPlayerMessageProcessorAdapter(final MessageProcessor oMessageProcessor)
-	{
-		m_oMessageProcessor = oMessageProcessor;
-	}
+   public NetworkPlayerMessageProcessorAdapter(final MessageProcessor oMessageProcessor)
+   {
+      m_oMessageProcessor = oMessageProcessor;
+   }
+
+   public NetworkPlayerMessageProcessorAdapter(final DispatchedMessageProcessor oMessageProcessor)
+   {
+      this(new DispatchedMessageProcessorAdapter(oMessageProcessor));
+   }
 
 	public String process(String sMessage)
 	{

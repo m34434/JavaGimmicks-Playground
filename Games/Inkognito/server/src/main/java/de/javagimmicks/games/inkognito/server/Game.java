@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 
@@ -14,6 +15,8 @@ import de.javagimmicks.games.inkognito.context.LocationsContext;
 import de.javagimmicks.games.inkognito.context.PlayerContext;
 import de.javagimmicks.games.inkognito.context.VisitsContext;
 import de.javagimmicks.games.inkognito.context.server.ServerContext;
+import de.javagimmicks.games.inkognito.message.DispatchedMessageProcessor;
+import de.javagimmicks.games.inkognito.message.DispatchedMessageProcessorAdapter;
 import de.javagimmicks.games.inkognito.message.MessageProcessor;
 import de.javagimmicks.games.inkognito.message.UnexpectedAnswerException;
 import de.javagimmicks.games.inkognito.message.answer.Answer;
@@ -518,4 +521,18 @@ public class Game implements Runnable
 		m_oGameLog.info(sMessage);
 	}
 	
+   public static Game fromDispatchedProcessors(ServerContext oServerContext, final List<? extends DispatchedMessageProcessor> oMessageProcessors, int iGameCount)
+   {
+      return new Game(
+         oServerContext,
+         oMessageProcessors.stream().map(p -> new DispatchedMessageProcessorAdapter(p)).collect(Collectors.toList()),
+         iGameCount);
+   }
+   
+   public static Game fromDispatchedProcessors(ServerContext oServerContext, final List<? extends DispatchedMessageProcessor> oMessageProcessors)
+   {
+      return new Game(
+            oServerContext,
+            oMessageProcessors.stream().map(p -> new DispatchedMessageProcessorAdapter(p)).collect(Collectors.toList()));
+   }
 }

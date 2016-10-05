@@ -96,7 +96,7 @@ public class CrazyAIMessageProcessor extends AbstractAIMessageProcessor
 		return (oCardPair == null) ? null : new ShowAnswer(oCardPair);
 	}
 
-	protected NameAnswer processAskMeetMessage(AskMeetMessage oMessage)
+	public NameAnswer processAskMeetMessage(AskMeetMessage oMessage)
 	{
 		for(Person oOtherPlayer : m_oOpponents)
 		{
@@ -109,11 +109,11 @@ public class CrazyAIMessageProcessor extends AbstractAIMessageProcessor
 		return null;
 	}
 
-	protected void processReportEndMessage(ReportEndMessage oMessage)
+	public void processReportEndMessage(ReportEndMessage oMessage)
 	{
 	}
 
-	protected void processReportExitMessage(ReportExitMessage oMessage)
+	public void processReportExitMessage(ReportExitMessage oMessage)
 	{
 	}
 

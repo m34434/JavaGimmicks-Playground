@@ -29,7 +29,7 @@ public class SmartAIMessageProcessor extends NormalAIMessageProcessor
 
 	
 	@Override
-	protected NameAnswer processAskMeetMessage(AskMeetMessage oMessage)
+	public NameAnswer processAskMeetMessage(AskMeetMessage oMessage)
 	{
 		List<Person> oWishList = getPlayerWishList(false);
 		

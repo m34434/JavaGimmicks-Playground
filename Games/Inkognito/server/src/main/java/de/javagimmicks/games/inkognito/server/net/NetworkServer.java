@@ -12,6 +12,8 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.logging.LogFactory;
 
 import de.javagimmicks.games.inkognito.context.server.ServerContext;
+import de.javagimmicks.games.inkognito.message.DispatchedMessageProcessor;
+import de.javagimmicks.games.inkognito.message.DispatchedMessageProcessorAdapter;
 import de.javagimmicks.games.inkognito.message.MessageProcessor;
 import de.javagimmicks.games.inkognito.server.Game;
 import de.javagimmicks.games.inkognito.server.processor.net.SocketMessageProcessor;
@@ -23,7 +25,7 @@ public class NetworkServer extends Thread
 	private final int m_iPort;
 	private final ExecutorService m_oExecutor;
     
-	private final Factory<MessageProcessor> m_oFactoryPlayerB;
+	 private final Factory<MessageProcessor> m_oFactoryPlayerB;
     private final Factory<MessageProcessor> m_oFactoryPlayerC;
     private final Factory<MessageProcessor> m_oFactoryPlayerD;
 	
@@ -40,10 +42,10 @@ public class NetworkServer extends Thread
 	
 	public NetworkServer(final int iPort, final Class<? extends MessageProcessor> oClassPlayerB, final Class<? extends MessageProcessor> oClassPlayerC, final Class<? extends MessageProcessor> oClassPlayerD) throws IllegalArgumentException, SecurityException, NoSuchMethodException
 	{
-	    this(iPort, new ReflectionFactory<MessageProcessor>(oClassPlayerB), new ReflectionFactory<MessageProcessor>(oClassPlayerC), new ReflectionFactory<MessageProcessor>(oClassPlayerD));
+	    this(iPort, new ReflectionFactory<>(oClassPlayerB), new ReflectionFactory<>(oClassPlayerC), new ReflectionFactory<>(oClassPlayerD));
 	}
 
-	public void run()
+   public void run()
 	{
 		// Setup the ServerSocket
 		final ServerSocket oServerSocket;
@@ -138,4 +140,34 @@ public class NetworkServer extends Thread
 			m_oExecutor.submit(oGameHandler);
 		}
 	}
+
+   public static NetworkServer fromDispatchedProcessors(final int iPort, Factory<DispatchedMessageProcessor> oFactoryPlayerB, Factory<DispatchedMessageProcessor> oFactoryPlayerC, Factory<DispatchedMessageProcessor> oFactoryPlayerD)
+   {
+      return new NetworkServer(
+         iPort,
+         new DispatchedMessageProcessorWrapperFactory(oFactoryPlayerB),
+         new DispatchedMessageProcessorWrapperFactory(oFactoryPlayerC),
+         new DispatchedMessageProcessorWrapperFactory(oFactoryPlayerD));
+   }
+   
+   public static NetworkServer fromDispatchedProcessors(final int iPort, final Class<? extends DispatchedMessageProcessor> oClassPlayerB, final Class<? extends DispatchedMessageProcessor> oClassPlayerC, final Class<? extends DispatchedMessageProcessor> oClassPlayerD) throws IllegalArgumentException, SecurityException, NoSuchMethodException
+   {
+      return fromDispatchedProcessors(iPort, new ReflectionFactory<>(oClassPlayerB), new ReflectionFactory<>(oClassPlayerC), new ReflectionFactory<>(oClassPlayerD));
+   }
+
+   private static class DispatchedMessageProcessorWrapperFactory implements Factory<MessageProcessor>
+   {
+      private final Factory<DispatchedMessageProcessor> f;
+   
+      public DispatchedMessageProcessorWrapperFactory(Factory<DispatchedMessageProcessor> f)
+      {
+         this.f = f;
+      }
+   
+      @Override
+      public MessageProcessor create()
+      {
+         return new DispatchedMessageProcessorAdapter(f.create());
+      }
+   }
 }
