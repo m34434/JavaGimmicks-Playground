@@ -36,18 +36,29 @@ public class ScoreKeeperManager {
     /**
      * Intent slot for player name.
      */
-    private static final String SLOT_PLAYER_NAME = "PlayerName";
+    private static final String SLOT_PLAYER_NAME = "PlayerName"; //$NON-NLS-1$
 
     /**
      * Intent slot for player score.
      */
-    private static final String SLOT_SCORE_NUMBER = "ScoreNumber";
+    private static final String SLOT_SCORE_NUMBER = "ScoreNumber"; //$NON-NLS-1$
 
     /**
      * Maximum number of players for which scores must be announced while adding a score.
      */
     private static final int MAX_PLAYERS_FOR_SPEECH = 3;
 
+    /**
+     * Text of complete help.
+     */
+    public static final String COMPLETE_HELP =
+            Messages.getString("general.completeHelp"); //$NON-NLS-1$
+
+    /**
+     * Text of next help.
+     */
+    public static final String NEXT_HELP = Messages.getString("general.nextHelp"); //$NON-NLS-1$
+    
     private final ScoreKeeperDao scoreKeeperDao;
 
     public ScoreKeeperManager(final AmazonDynamoDBClient amazonDynamoDbClient) {
@@ -72,18 +83,16 @@ public class ScoreKeeperManager {
         ScoreKeeperGame game = scoreKeeperDao.getScoreKeeperGame(session);
 
         if (game == null || !game.hasPlayers()) {
-            speechText = "ScoreKeeper, Let's start your game. Who's your first player?";
-            repromptText = "Please tell me who is your first player?";
+            speechText = Messages.getString("launch.newGame.speech"); //$NON-NLS-1$
+            repromptText = Messages.getString("launch.newGame.reprompt"); //$NON-NLS-1$
         } else if (!game.hasScores()) {
-            speechText =
-                    "ScoreKeeper, you have " + game.getNumberOfPlayers()
-                            + (game.getNumberOfPlayers() == 1 ? " player" : " players")
-                            + " in the game. You can give a player points, add another player,"
-                            + " reset all players or exit. Which would you like?";
-            repromptText = ScoreKeeperTextUtil.COMPLETE_HELP;
+            final int numberOfPlayers = game.getNumberOfPlayers();
+            final String playerString = numberOfPlayers == 1 ? Messages.getString("general.player") : Messages.getString("general.players"); //$NON-NLS-1$ //$NON-NLS-2$
+            speechText = String.format(Messages.getString("launch.noScore.speech"), numberOfPlayers, playerString); //$NON-NLS-1$
+            repromptText = Messages.getString("general.completeHelp"); //$NON-NLS-1$
         } else {
-            speechText = "ScoreKeeper, What can I do for you?";
-            repromptText = ScoreKeeperTextUtil.NEXT_HELP;
+            speechText = Messages.getString("launch.running.speech"); //$NON-NLS-1$
+            repromptText = NEXT_HELP;
         }
 
         return getAskSpeechletResponse(speechText, repromptText);
@@ -102,23 +111,23 @@ public class ScoreKeeperManager {
         ScoreKeeperGame game = scoreKeeperDao.getScoreKeeperGame(session);
 
         if (game == null) {
-            return getAskSpeechletResponse("New game started. Who's your first player?",
-                    "Please tell me who\'s your first player?");
+            return getAskSpeechletResponse(Messages.getString("newGame.new.speech"), //$NON-NLS-1$
+                    Messages.getString("newGame.new.reprompt")); //$NON-NLS-1$
         }
 
         // Reset current game
         game.resetScores();
         scoreKeeperDao.saveScoreKeeperGame(game);
 
-        String speechText =
-                "New game started with " + game.getNumberOfPlayers() + " existing player"
-                        + (game.getNumberOfPlayers() > 1 ? "s" : "") + ".";
+        final int numberOfPlayers = game.getNumberOfPlayers();
+        final String playerString = numberOfPlayers == 1 ? Messages.getString("general.player") : Messages.getString("general.players"); //$NON-NLS-1$ //$NON-NLS-2$
+
+        String speechText = String.format(Messages.getString("newGame.reset.speech"), numberOfPlayers, playerString); //$NON-NLS-1$
 
         if (skillContext.needsMoreHelp()) {
             String repromptText =
-                    "You can give a player points, add another player, reset all players or "
-                            + "exit. What would you like?";
-            speechText += repromptText;
+                    Messages.getString("newGame.reset.reprompt"); //$NON-NLS-1$
+            speechText += " " + repromptText;
             return getAskSpeechletResponse(speechText, repromptText);
         } else {
             return getTellSpeechletResponse(speechText);
@@ -140,10 +149,9 @@ public class ScoreKeeperManager {
         // add a player to the current game,
         // terminate or continue the conversation based on whether the intent
         // is from a one shot command or not.
-        String newPlayerName =
-                ScoreKeeperTextUtil.getPlayerName(intent.getSlot(SLOT_PLAYER_NAME).getValue());
+        String newPlayerName = ScoreKeeperTextUtil.getPlayerName(intent.getSlot(SLOT_PLAYER_NAME).getValue());
         if (newPlayerName == null) {
-            String speechText = "OK. Who do you want to add?";
+            String speechText = Messages.getString("add.noplayer"); //$NON-NLS-1$
             return getAskSpeechletResponse(speechText, speechText);
         }
 
@@ -158,17 +166,17 @@ public class ScoreKeeperManager {
         // Save the updated game
         scoreKeeperDao.saveScoreKeeperGame(game);
 
-        String speechText = newPlayerName + " has joined your game. ";
+        String speechText = String.format(Messages.getString("add.base.speech"), newPlayerName); //$NON-NLS-1$
         String repromptText = null;
 
         if (skillContext.needsMoreHelp()) {
             if (game.getNumberOfPlayers() == 1) {
-                speechText += "You can say, I am done adding players. Now who's your next player?";
+                speechText += Messages.getString("18"); //$NON-NLS-1$
 
             } else {
-                speechText += "Who is your next player?";
+                speechText += Messages.getString("19"); //$NON-NLS-1$
             }
-            repromptText = ScoreKeeperTextUtil.NEXT_HELP;
+            repromptText = NEXT_HELP;
         }
 
         if (repromptText != null) {
@@ -194,7 +202,7 @@ public class ScoreKeeperManager {
         String playerName =
                 ScoreKeeperTextUtil.getPlayerName(intent.getSlot(SLOT_PLAYER_NAME).getValue());
         if (playerName == null) {
-            String speechText = "Sorry, I did not hear the player name. Please say again?";
+            String speechText = Messages.getString("20"); //$NON-NLS-1$
             return getAskSpeechletResponse(speechText, speechText);
         }
 
@@ -202,24 +210,23 @@ public class ScoreKeeperManager {
         try {
             score = Integer.parseInt(intent.getSlot(SLOT_SCORE_NUMBER).getValue());
         } catch (NumberFormatException e) {
-            String speechText = "Sorry, I did not hear the points. Please say again?";
+            String speechText = Messages.getString("21"); //$NON-NLS-1$
             return getAskSpeechletResponse(speechText, speechText);
         }
 
         ScoreKeeperGame game = scoreKeeperDao.getScoreKeeperGame(session);
         if (game == null) {
-            return getTellSpeechletResponse("A game has not been started. Please say New Game to "
-                    + "start a new game before adding scores.");
+            return getTellSpeechletResponse(Messages.getString("22")); //$NON-NLS-1$
         }
 
         if (game.getNumberOfPlayers() == 0) {
-            String speechText = "Sorry, no player has joined the game yet. What can I do for you?";
+            String speechText = Messages.getString("23"); //$NON-NLS-1$
             return getAskSpeechletResponse(speechText, speechText);
         }
 
         // Update score
         if (!game.addScoreForPlayer(playerName, score)) {
-            String speechText = "Sorry, " + playerName + " has not joined the game. What else?";
+            String speechText = String.format(Messages.getString("24"), playerName); //$NON-NLS-1$
             return getAskSpeechletResponse(speechText, speechText);
         }
 
@@ -228,9 +235,9 @@ public class ScoreKeeperManager {
 
         // Prepare speech text. If the game has less than 3 players, skip reading scores for each
         // player for brevity.
-        String speechText = score + " for " + playerName + ". ";
+        String speechText = String.format(Messages.getString("25"), score, playerName); //$NON-NLS-1$
         if (game.getNumberOfPlayers() > MAX_PLAYERS_FOR_SPEECH) {
-            speechText += playerName + " has " + game.getScoreForPlayer(playerName) + " in total.";
+            speechText += String.format(Messages.getString("26"), playerName, game.getScoreForPlayer(playerName)); //$NON-NLS-1$
         } else {
             speechText += getAllScoresAsSpeechText(game.getAllScoresInDescndingOrder());
         }
@@ -252,7 +259,7 @@ public class ScoreKeeperManager {
         ScoreKeeperGame game = scoreKeeperDao.getScoreKeeperGame(session);
 
         if (game == null || !game.hasPlayers()) {
-            return getTellSpeechletResponse("Nobody has joined the game.");
+            return getTellSpeechletResponse(Messages.getString("27")); //$NON-NLS-1$
         }
 
         SortedMap<String, Long> sortedScores = game.getAllScoresInDescndingOrder();
@@ -280,7 +287,7 @@ public class ScoreKeeperManager {
                 ScoreKeeperGame.newInstance(session, new ScoreKeeperGameData());
         scoreKeeperDao.saveScoreKeeperGame(game);
 
-        String speechText = "New game started without players. Who do you want to add first?";
+        String speechText = Messages.getString("28"); //$NON-NLS-1$
         return getAskSpeechletResponse(speechText, speechText);
     }
 
@@ -298,9 +305,9 @@ public class ScoreKeeperManager {
     public SpeechletResponse getHelpIntentResponse(Intent intent, Session session,
             SkillContext skillContext) {
         return skillContext.needsMoreHelp() ? getAskSpeechletResponse(
-                ScoreKeeperTextUtil.COMPLETE_HELP + " So, how can I help?",
-                ScoreKeeperTextUtil.NEXT_HELP)
-                : getTellSpeechletResponse(ScoreKeeperTextUtil.COMPLETE_HELP);
+                COMPLETE_HELP + Messages.getString("29"), //$NON-NLS-1$
+                NEXT_HELP)
+                : getTellSpeechletResponse(COMPLETE_HELP);
     }
 
     /**
@@ -316,9 +323,8 @@ public class ScoreKeeperManager {
      */
     public SpeechletResponse getExitIntentResponse(Intent intent, Session session,
             SkillContext skillContext) {
-        return skillContext.needsMoreHelp() ? getTellSpeechletResponse("Okay. Whenever you're "
-                + "ready, you can start giving points to the players in your game.")
-                : getTellSpeechletResponse("");
+        return skillContext.needsMoreHelp() ? getTellSpeechletResponse(Messages.getString("30")) //$NON-NLS-1$
+                : getTellSpeechletResponse(""); //$NON-NLS-1$
     }
 
     /**
@@ -333,7 +339,7 @@ public class ScoreKeeperManager {
     private SpeechletResponse getAskSpeechletResponse(String speechText, String repromptText) {
         // Create the Simple card content.
         SimpleCard card = new SimpleCard();
-        card.setTitle("Session");
+        card.setTitle(Messages.getString("32")); //$NON-NLS-1$
         card.setContent(speechText);
 
         // Create the plain text output.
@@ -382,12 +388,12 @@ public class ScoreKeeperManager {
         int index = 0;
         for (Entry<String, Long> entry : scores.entrySet()) {
             if (scores.size() > 1 && index == scores.size() - 1) {
-                speechText.append(" and ");
+                speechText.append(String.format(" %s ", Messages.getString("35"))); //$NON-NLS-1$ //$NON-NLS-2$
             }
-            String singularOrPluralPoints = entry.getValue() == 1 ? " point, " : " points, ";
+            String singularOrPluralPoints = String.format(Messages.getString("36"), entry.getValue() == 1 ? Messages.getString("37") : Messages.getString("38")); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
             speechText
                     .append(entry.getKey())
-                    .append(" has ")
+                    .append(String.format(" %s ", Messages.getString("40"))) //$NON-NLS-1$ //$NON-NLS-2$
                     .append(entry.getValue())
                     .append(singularOrPluralPoints);
             index++;
@@ -410,18 +416,11 @@ public class ScoreKeeperManager {
         int index = 0;
         for (Entry<String, Long> entry : scores.entrySet()) {
             index++;
-            leaderboard
-                    .append("No. ")
-                    .append(index)
-                    .append(" - ")
-                    .append(entry.getKey())
-                    .append(" : ")
-                    .append(entry.getValue())
-                    .append("\n");
+            leaderboard.append(String.format(Messages.getString("41"), index, entry.getKey(), entry.getValue())); //$NON-NLS-1$
         }
 
         SimpleCard card = new SimpleCard();
-        card.setTitle("Leaderboard");
+        card.setTitle(Messages.getString("42")); //$NON-NLS-1$
         card.setContent(leaderboard.toString());
         return card;
     }

@@ -26,19 +26,6 @@ public final class ScoreKeeperTextUtil {
     private static final List<String> NAME_BLACKLIST = Arrays.asList("player", "players");
 
     /**
-     * Text of complete help.
-     */
-    public static final String COMPLETE_HELP =
-            "Here's some things you can say. Add John, give John 5 points, tell me the score, "
-                    + "new game, reset, and exit.";
-
-    /**
-     * Text of next help.
-     */
-    public static final String NEXT_HELP = "You can give a player points, add a player, get the "
-            + "current score, or say help. What would you like?";
-
-    /**
      * Cleans up the player name, and sanitizes it against the blacklist.
      *
      * @param recognizedPlayerName
