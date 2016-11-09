@@ -13,13 +13,13 @@ import de.javagimmicks.games.inkognito.message.answer.NameAnswer;
 import de.javagimmicks.games.inkognito.message.message.AskMeetMessage;
 import de.javagimmicks.games.inkognito.message.message.AskMoveMessage;
 import de.javagimmicks.games.inkognito.model.Location;
-import de.javagimmicks.games.inkognito.model.Player;
+import de.javagimmicks.games.inkognito.model.Person;
 
 public class SmartAIMessageProcessor extends NormalAIMessageProcessor
 {
-	public SmartAIMessageProcessor(String sNameBase)
+	public SmartAIMessageProcessor(String name)
 	{
-		super(sNameBase);
+		super(name);
 	}
 	
 	public SmartAIMessageProcessor()
@@ -29,15 +29,15 @@ public class SmartAIMessageProcessor extends NormalAIMessageProcessor
 
 	
 	@Override
-	protected NameAnswer processAskMeetMessage(AskMeetMessage oMessage)
+	public NameAnswer processAskMeetMessage(AskMeetMessage oMessage)
 	{
-		List<Player> oWishList = getPlayerWishList(false);
+		List<Person> oWishList = getPlayerWishList(false);
 		
-		for(Player oPlayer : oWishList)
+		for(Person oPlayer : oWishList)
 		{
 			if(m_oGameContext.getCardShowingContext().mayPlayerAskId(m_oPlayer, oPlayer))
 			{
-				return new NameAnswer(oPlayer.getName());
+				return new NameAnswer(oPlayer);
 			}
 		}
 		
@@ -50,11 +50,11 @@ public class SmartAIMessageProcessor extends NormalAIMessageProcessor
 		VisitsContext oVisitsContext = m_oGameContext.getVisitsContext();
 		LocationsContext oLocationsContext = m_oGameContext.getLocationsContext();
 
-		List<Player> oWishList = isAllKnown() ? Collections.singletonList(getMyPartner()) : getPlayerWishList(true);
+		List<Person> oWishList = isAllKnown() ? Collections.singletonList(getMyPartner()) : getPlayerWishList(true);
 		List<Location> oMyFreeLocations = oVisitsContext.getVisitableLocations(m_oPlayer);
 		
 		// Try to meet the favourite player's directly, if he has already moved
-		for(Player oPlayer : oWishList)
+		for(Person oPlayer : oWishList)
 		{
 			Location oLocation = oLocationsContext.getCurrentLocation(oPlayer);
 			if(oLocation != null && oMyFreeLocations.contains(oLocation) && oLocationsContext.getVisitorCount(oLocation) == 1)
@@ -64,7 +64,7 @@ public class SmartAIMessageProcessor extends NormalAIMessageProcessor
 		}
 
 		// Go to a location where the desired meet partner can also go
-		for(Player oPlayer : oWishList)
+		for(Person oPlayer : oWishList)
 		{
 			if(oLocationsContext.getCurrentLocation(oPlayer) != null)
 			{
@@ -124,7 +124,7 @@ public class SmartAIMessageProcessor extends NormalAIMessageProcessor
 		}
 		
 		// Last, we must check, if any opponent can move here
-		for(Player oPlayer : m_oOpponents)
+		for(Person oPlayer : m_oOpponents)
 		{
 			if(oVisitsContext.isLocationVisitable(oPlayer, oLocation))
 			{
@@ -135,9 +135,9 @@ public class SmartAIMessageProcessor extends NormalAIMessageProcessor
 		return true;
 	}
 	
-	protected Player getMyPartner()
+	protected Person getMyPartner()
 	{
-		for(Player oPlayer : m_oOpponents)
+		for(Person oPlayer : m_oOpponents)
 		{
 			if(isMyPartner(oPlayer))
 			{
@@ -148,11 +148,11 @@ public class SmartAIMessageProcessor extends NormalAIMessageProcessor
 		return null;
 	}
 	
-	protected List<Player> getPlayerWishList(boolean bSkipNonPositive)
+	protected List<Person> getPlayerWishList(boolean bSkipNonPositive)
 	{
 		final ArrayList<MeetWish> oMeetList = new ArrayList<MeetWish>(m_oOpponents.size());
 		
-		for(Player oPlayer : m_oOpponents)
+		for(Person oPlayer : m_oOpponents)
 		{
 			MeetWish oMeetWish = new MeetWish(oPlayer);
 			
@@ -164,9 +164,9 @@ public class SmartAIMessageProcessor extends NormalAIMessageProcessor
 		
 		Collections.sort(oMeetList);
 		
-		return new AbstractList<Player>()
+		return new AbstractList<Person>()
 		{
-			public Player get(int index)
+			public Person get(int index)
 			{
 				return oMeetList.get(index).PLAYER;
 			}
@@ -180,10 +180,10 @@ public class SmartAIMessageProcessor extends NormalAIMessageProcessor
 	
 	protected class MeetWish implements Comparable<MeetWish>
 	{
-		public final Player PLAYER;
+		public final Person PLAYER;
 		public final int POINTS;
 		
-		public MeetWish(final Player oPlayer)
+		public MeetWish(final Person oPlayer)
 		{
 			PLAYER = oPlayer;
 			POINTS = getPlayerMeetPoints(oPlayer);
@@ -194,7 +194,7 @@ public class SmartAIMessageProcessor extends NormalAIMessageProcessor
 			return this.POINTS - o.POINTS;
 		}
 
-		private int getPlayerMeetPoints(Player oPlayer)
+		private int getPlayerMeetPoints(Person oPlayer)
 		{
 			int iResult = 0;
 			

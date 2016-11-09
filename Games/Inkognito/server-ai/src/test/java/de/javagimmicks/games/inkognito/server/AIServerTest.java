@@ -7,7 +7,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
 
-import de.javagimmicks.games.inkognito.context.server.impl.DefaultServerContext;
+import de.javagimmicks.games.inkognito.context.server.ServerContext;
 import de.javagimmicks.games.inkognito.server.processor.ai.AbstractAIMessageProcessor;
 import de.javagimmicks.games.inkognito.server.processor.ai.CrazyAIMessageProcessor;
 import de.javagimmicks.games.inkognito.server.processor.ai.NormalAIMessageProcessor;
@@ -26,14 +26,14 @@ public class AIServerTest
 		AbstractAIMessageProcessor oPlayer4 = new SmartAIMessageProcessor();
 		
 		List<AbstractAIMessageProcessor> oPlayers = Arrays.asList(oPlayer1, oPlayer2, oPlayer3, oPlayer4);
-		Game oGameHandler = new Game(new DefaultServerContext(), oPlayers, 20000);
+		Game oGameHandler = Game.fromDispatchedProcessors(new ServerContext(), oPlayers, 20000);
 //		oGameHandler.setGameLogger(GAME_LOG);
 		
 		oGameHandler.run();
 		
 		for(AbstractAIMessageProcessor oProcessor : oPlayers)
 		{
-			System.out.printf("%1$10s: %2$s%n", oProcessor.getPlayerName(), oProcessor.getWinCount());
+			System.out.printf("%1$10s: %2$s%n", oProcessor.getName(), oProcessor.getWinCount());
 		}
 	}
 }

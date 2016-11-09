@@ -1,49 +1,44 @@
 package de.javagimmicks.games.inkognito.message.message;
 
 import de.javagimmicks.games.inkognito.model.CardPair;
-import de.javagimmicks.games.inkognito.model.Player;
+import de.javagimmicks.games.inkognito.model.Person;
 
 public class ReportWinLooseMessage implements Message
 {
-	private final String m_sPlayerName;
-	private final CardPair m_oPlayerId;
-	private final boolean m_bWin;
+	private final Person player;
+	private final CardPair playerId;
+	private final boolean win;
 
-	public static ReportWinLooseMessage fromPlayer(final Player oPlayer, boolean bWin)
+	public ReportWinLooseMessage(final Person player, final CardPair oPlayerId, final boolean bWin)
 	{
-		return new ReportWinLooseMessage(oPlayer.getName(), oPlayer.getId(), bWin);
-	}
-	
-	public ReportWinLooseMessage(final String sPlayerName, final CardPair oPlayerId, final boolean bWin)
-	{
-		m_sPlayerName = sPlayerName;
-		m_oPlayerId = oPlayerId;
-		m_bWin = bWin;
+		this.player = player;
+		this.playerId = oPlayerId;
+		this.win = bWin;
 	}
 
 	public String serialize()
 	{
 		return new StringBuffer()
-			.append(m_bWin ? SIG_REP_WINNER : SIG_REP_LOOSER)
+			.append(win ? SIG_REP_WINNER : SIG_REP_LOOSER)
 			.append(' ')
-			.append(m_sPlayerName)
+			.append(player)
 			.append(' ')
-			.append(m_oPlayerId)
+			.append(playerId)
 			.toString();
 	}
 
 	public boolean isWin()
 	{
-		return m_bWin;
+		return win;
 	}
 
-	public String getPlayerName()
+	public Person getPlayer()
 	{
-		return m_sPlayerName;
+		return player;
 	}
 	
 	public CardPair getPlayerId()
 	{
-		return m_oPlayerId;
+		return playerId;
 	}
 }

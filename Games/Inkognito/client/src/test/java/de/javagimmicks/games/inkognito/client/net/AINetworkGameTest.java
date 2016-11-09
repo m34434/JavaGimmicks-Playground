@@ -28,7 +28,7 @@ public class AINetworkGameTest
         _helper = new MultiThreadedTestHelper<Void>(true);
 
         // Setup and start a server with three AI players
-        _server = new NetworkServer(PORT, CrazyAIMessageProcessor.class, NormalAIMessageProcessor.class, SmartAIMessageProcessor.class);
+        _server = NetworkServer.fromDispatchedProcessors(PORT, CrazyAIMessageProcessor.class, NormalAIMessageProcessor.class, SmartAIMessageProcessor.class);
         _server.start();
     }
     

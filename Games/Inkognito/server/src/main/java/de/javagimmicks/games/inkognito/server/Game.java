@@ -1,19 +1,22 @@
 package de.javagimmicks.games.inkognito.server;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 
 import de.javagimmicks.games.inkognito.context.CardShowingContext;
 import de.javagimmicks.games.inkognito.context.LocationsContext;
+import de.javagimmicks.games.inkognito.context.PlayerContext;
 import de.javagimmicks.games.inkognito.context.VisitsContext;
 import de.javagimmicks.games.inkognito.context.server.ServerContext;
+import de.javagimmicks.games.inkognito.message.DispatchedMessageProcessor;
+import de.javagimmicks.games.inkognito.message.DispatchedMessageProcessorAdapter;
 import de.javagimmicks.games.inkognito.message.MessageProcessor;
 import de.javagimmicks.games.inkognito.message.UnexpectedAnswerException;
 import de.javagimmicks.games.inkognito.message.answer.Answer;
@@ -21,7 +24,6 @@ import de.javagimmicks.games.inkognito.message.answer.ShowAnswer;
 import de.javagimmicks.games.inkognito.message.message.AnsweredMessage;
 import de.javagimmicks.games.inkognito.message.message.AskMeetMessage;
 import de.javagimmicks.games.inkognito.message.message.AskMoveMessage;
-import de.javagimmicks.games.inkognito.message.message.AskNameMessage;
 import de.javagimmicks.games.inkognito.message.message.AskShowEnvoyMessage;
 import de.javagimmicks.games.inkognito.message.message.AskShowMessage;
 import de.javagimmicks.games.inkognito.message.message.Message;
@@ -29,17 +31,15 @@ import de.javagimmicks.games.inkognito.message.message.ReportEndMessage;
 import de.javagimmicks.games.inkognito.message.message.ReportExitMessage;
 import de.javagimmicks.games.inkognito.message.message.ReportIdMessage;
 import de.javagimmicks.games.inkognito.message.message.ReportMoveMessage;
-import de.javagimmicks.games.inkognito.message.message.ReportNamesMessage;
+import de.javagimmicks.games.inkognito.message.message.ReportNameMessage;
 import de.javagimmicks.games.inkognito.message.message.ReportSeeEnvoyMessage;
 import de.javagimmicks.games.inkognito.message.message.ReportSeeMessage;
 import de.javagimmicks.games.inkognito.message.message.ReportWinLooseMessage;
 import de.javagimmicks.games.inkognito.model.Card;
 import de.javagimmicks.games.inkognito.model.CardPair;
 import de.javagimmicks.games.inkognito.model.CardType;
-import de.javagimmicks.games.inkognito.model.Envoy;
 import de.javagimmicks.games.inkognito.model.Location;
 import de.javagimmicks.games.inkognito.model.Person;
-import de.javagimmicks.games.inkognito.model.Player;
 
 public class Game implements Runnable
 {
@@ -59,7 +59,7 @@ public class Game implements Runnable
 		
 		if(iGameCount < 1)
 		{
-			throw new IllegalArgumentException("Number of games to player must be greater than 0!");
+			throw new IllegalArgumentException("Number of games to play must be greater than 0!");
 		}
 		
 		m_oMessageProcessors = new ArrayList<MessageProcessor>(oMessageProcessors);
@@ -79,23 +79,14 @@ public class Game implements Runnable
 
 	public void run()
 	{
-		// Initialize the players (ask name from everyone and init PlayerContext)
-		try
-		{
-			initPlayers();
-		}
-		catch (InitializationException e)
-		{
-			sendEndMessage(e.getMessage());
-			sendExitMessage();
-			return;
-		}
+		// Shuffle message processors
+      Collections.shuffle(m_oMessageProcessors);
 		
 		// Register the message processor in the MessageProcessorContext
 		registerMessageProcessors();
 		
 		// Send the names! message to all players
-		sendNamesMessage();
+		sendNameMessages();
 
 		// Run the series of games according to number of games to play
 		try
@@ -145,93 +136,25 @@ public class Game implements Runnable
 		}
 	}
 	
-	private void initPlayers() throws InitializationException
-	{
-		List<String> oNames = new ArrayList<String>(m_oMessageProcessors.size());
-		
-		AskNameMessage oAskNameMessage = AskNameMessage.INSTANCE;
-		
-		for(ListIterator<MessageProcessor> iterProcessors = m_oMessageProcessors.listIterator(); iterProcessors.hasNext();)
-		{
-			MessageProcessor oMessageProcessor = iterProcessors.next();
-			
-			String sName;
-			int iCount = 0;
-			do
-			{
-				if(iCount++ > oNames.size())
-				{
-					throw new InitializationException(oMessageProcessor, "Some player was not able to provide a unique name!");
-				}
-				
-				try
-				{
-					if(m_oGameLog != null)
-					{
-						logSend("Player" + String.valueOf(iterProcessors.previousIndex() + 1), oAskNameMessage.serialize());
-					}
-					
-					sName = oMessageProcessor.processAnsweredMessage(oAskNameMessage).getName();
-
-					if(m_oGameLog != null)
-					{
-						logReceive("Player" + String.valueOf(iterProcessors.previousIndex() + 1), sName);
-					}
-
-					for(char c : sName.toCharArray())
-					{
-						if(Character.isWhitespace(c))
-						{
-							throw new UnexpectedAnswerException("Player name may not contain whitespaces!");
-						}
-					}
-					
-					if(Envoy.INSTANCE.getName().equals(sName))
-					{
-						throw new UnexpectedAnswerException("Envoy name not allowed as player name!");
-					}
-				}
-				catch (UnexpectedAnswerException e)
-				{
-					throw new InitializationException(oMessageProcessor, "Some player provided an illegal name!", e);
-				}
-			}
-			while(oNames.contains(sName));
-			
-			oNames.add(sName);
-		}
-		
-		List<Player> oPlayers = new ArrayList<Player>(oNames.size());
-		for(String sName : oNames)
-		{
-			oPlayers.add(new Player(sName));
-		}
-		
-		m_oServerContext.getPlayerContext().init(oPlayers);
-	}
-	
 	private void registerMessageProcessors()
 	{
 		Iterator<MessageProcessor> iterMessageProcessors = m_oMessageProcessors.iterator();
-		Iterator<Player> iterPlayer = m_oServerContext.getPlayerContext().getInitialPlayers().iterator();
 		
-		while(iterMessageProcessors.hasNext())
+		for(Person player : PlayerContext.getPlayers())
 		{
 			MessageProcessor oMessageProcessor = iterMessageProcessors.next();
-			Player oPlayer = iterPlayer.next();
 			
-			m_oServerContext.getMessageProcessorContext().registerMessageProcessor(oPlayer.getName(), oMessageProcessor);
+			m_oServerContext.getMessageProcessorContext().registerMessageProcessor(player, oMessageProcessor);
 		}
 	}
 	
-	private void sendNamesMessage()
+	private void sendNameMessages()
 	{
-		List<Player> oPlayers = m_oServerContext.getPlayerContext().getPlayersRotated();
-		ReportNamesMessage oNamesMessage = ReportNamesMessage.fromPlayerList(oPlayers);
-		for(Player oPlayer : oPlayers)
-		{
-			processMessage(oPlayer, oNamesMessage);
-		}
+	   for(Person player : PlayerContext.getPlayers())
+	   {
+	      final ReportNameMessage oNamesMessage = new ReportNameMessage(player);
+	      processMessage(player, oNamesMessage);
+	   }
 	}
 	
 	private void assignPlayerIdentities()
@@ -242,20 +165,22 @@ public class Game implements Runnable
 		Collections.shuffle(oNameCards);
 		Collections.shuffle(oTelephoneCards);
 
-		Iterator<Player> iterPlayers = m_oServerContext.getPlayerContext().getInitialPlayers().iterator();
+		Iterator<Person> iterPlayers = PlayerContext.getPlayers().iterator();
 		Iterator<Card> iterNameCards = oNameCards.iterator();
 		Iterator<Card> iterTelephoneCards = oTelephoneCards.iterator();
 		
+		PlayerContext playerContext = m_oServerContext.getPlayerContext();
+
 		while(iterPlayers.hasNext())
 		{
-			Player oPlayer = iterPlayers.next();
+		   Person oPlayer = iterPlayers.next();
 			Card oNameCard = iterNameCards.next();
 			Card oTelephoneCard = iterTelephoneCards.next();
 			
-			oPlayer.setNameCard(oNameCard);
-			oPlayer.setTelephoneCard(oTelephoneCard);
-
-			processMessage(oPlayer, ReportIdMessage.fromPlayer(oPlayer));
+			playerContext.setNameCard(oPlayer, oNameCard);
+			playerContext.setTelephoneCard(oPlayer, oTelephoneCard);
+			
+			processMessage(oPlayer, new ReportIdMessage(oNameCard, oTelephoneCard));
 		}
 	}
 
@@ -273,7 +198,7 @@ public class Game implements Runnable
 		
 		for(Location oLocation : Location.values())
 		{
-			// Get meeting perons for the location
+			// Get meeting persons for the location
 			List<Person> oMeetingPersons = oLocationsContext.getVisitors(oLocation);
 			
 			// If other than 2 persons meet, nothing happens
@@ -282,31 +207,25 @@ public class Game implements Runnable
 				continue;
 			}
 			
-			Player oPersonA = (Player)oMeetingPersons.get(0);
+			Person oPersonA = oMeetingPersons.get(0);
 			Person oPersonB = oMeetingPersons.get(1);
 			
-			if(oPersonB instanceof Envoy)
+			if(oPersonB == Person.Envoy)
 			{
 				processMeetEnvoy(oPersonA);
 			}
 			else
 			{
-				processMeetPlayer(oPersonA, (Player)oPersonB);
+				processMeetPlayer(oPersonA, oPersonB);
 			}
 		}
 	}
 	
-	private void processMeetEnvoy(Player oAskingPlayer) throws PlayerException
+	private void processMeetEnvoy(Person oAskingPlayer) throws PlayerException
 	{
 		// Ask the asking player, which other player he wants to meet
-		String sShowingPlayerName = processAnsweredMessage(oAskingPlayer, AskMeetMessage.INSTANCE).getName();
-		Player oShowingPlayer = m_oServerContext.getPlayerContext().getPlayer(sShowingPlayerName); 
+		Person oShowingPlayer = processAnsweredMessage(oAskingPlayer, AskMeetMessage.INSTANCE).getPerson(); 
 
-		if(oShowingPlayer == null)
-		{
-			throw new PlayerException(oAskingPlayer, "Unknown player name '" + sShowingPlayerName + "'!");
-		}
-		
 		CardShowingContext oCardShowingContext = m_oServerContext.getCardShowingContext();
 		
 		// Check, if really another player was returned
@@ -322,7 +241,7 @@ public class Game implements Runnable
 		}
 		
 		// Ask the other player for a card to show
-		Card oShownCard = processAnsweredMessage(oShowingPlayer, AskShowEnvoyMessage.fromPlayer(oAskingPlayer)).getCard();
+		Card oShownCard = processAnsweredMessage(oShowingPlayer, new AskShowEnvoyMessage(oAskingPlayer)).getCard();
 	
 		// Check, if the showing player was showing a valid card
 		if(!oCardShowingContext.mayPlayerShowId(oShowingPlayer, oAskingPlayer, oShownCard))
@@ -331,24 +250,24 @@ public class Game implements Runnable
 		}
 		
 		// Forward the information to the asking player
-		processMessage(oAskingPlayer, ReportSeeEnvoyMessage.fromPlayerAndCard(oShowingPlayer, oShownCard));
+		processMessage(oAskingPlayer, new ReportSeeEnvoyMessage(oShowingPlayer, oShownCard));
 		
 		// Register the information in the context
 		oCardShowingContext.notifiyPlayerShow(oShowingPlayer, oAskingPlayer, oShownCard);
 	}
 	
-	private void processMeetPlayer(Player oPlayer1, Player oPlayer2) throws PlayerException
+	private void processMeetPlayer(Person oPlayer1, Person oPlayer2) throws PlayerException
 	{
 		processShowPair(oPlayer1, oPlayer2);
 		processShowPair(oPlayer2, oPlayer1);
 	}
 	
-	private void processShowPair(Player oAskingPlayer, Player oShowingPlayer) throws PlayerException
+	private void processShowPair(Person oAskingPlayer, Person oShowingPlayer) throws PlayerException
 	{
 		CardShowingContext oCardShowingContext = m_oServerContext.getCardShowingContext();
 
 		// Ask the showing player for his card pair
-		ShowAnswer oShowAnswer = processAnsweredMessage(oShowingPlayer, AskShowMessage.fromPlayer(oAskingPlayer));
+		ShowAnswer oShowAnswer = processAnsweredMessage(oShowingPlayer, new AskShowMessage(oAskingPlayer));
 		
 		// Special treatment for the phone call
 		if(oShowAnswer.isPhoneCall())
@@ -366,23 +285,24 @@ public class Game implements Runnable
 			}
 			
 			// Forward the information to the asking player
-			processMessage(oAskingPlayer, ReportSeeMessage.fromPlayerAndCardPair(oShowingPlayer, oShownPair));
+			processMessage(oAskingPlayer, new ReportSeeMessage(oShowingPlayer, oShownPair));
 			
 			// Register the information in the context
 			oCardShowingContext.notifiyPlayerShow(oShowingPlayer, oAskingPlayer, oShownPair);
 		}
 	}
 	
-	private void processPhoneCall(Player oAskingPlayer, Player oShowingPlayer, ShowAnswer oShowAnswer) throws PlayerException
+	private void processPhoneCall(Person oAskingPlayer, Person oShowingPlayer, ShowAnswer oShowAnswer) throws PlayerException
 	{
-		if(!oAskingPlayer.getNameCard().isPartner(oShowingPlayer.getNameCard()))
+	   final PlayerContext playerContext = m_oServerContext.getPlayerContext();
+		if(!playerContext.getNameCard(oAskingPlayer).isPartner(playerContext.getNameCard(oShowingPlayer)))
 		{
 			throw new PlayerException(oShowingPlayer, "The partner was not met to make the phone call!");
 		}
 		
 		// Get iterators for all players and the returned solution
 		Iterator<CardPair> oSolution = oShowAnswer.getSolution().iterator();
-		Iterator<Player> oPlayers = m_oServerContext.getPlayerContext().getInitialPlayers().iterator();
+		Iterator<Person> oPlayers = PlayerContext.getPlayers().iterator();
 		
 		// Iterator over all players
 		while(oPlayers.hasNext())
@@ -394,11 +314,11 @@ public class Game implements Runnable
 			}
 			
 			// Get the next player and solution pair
-			Player oPlayer = oPlayers.next();
+			Person oPlayer = oPlayers.next();
 			CardPair oCardPair = oSolution.next();
 			
 			// If the pair is wrong, the phone call is wrong
-			if(!oPlayer.getId().equals(oCardPair))
+			if(!playerContext.getId(oPlayer).equals(oCardPair))
 			{
 				throw new PlayerException(oShowingPlayer, "The solution was wrong!");
 			}
@@ -418,8 +338,8 @@ public class Game implements Runnable
 	{
 		VisitsContext oVisitsContext = m_oServerContext.getVisitsContext();
 		
-		List<Player> oPlayers = m_oServerContext.getPlayerContext().getPlayersRotated();
-		for(Player oPlayer : oPlayers)
+		List<Person> oPlayers = m_oServerContext.getPlayerContext().getPlayersRotated();
+		for(Person oPlayer : oPlayers)
 		{
 			// Ask the player where to move
 			Location oLocation = processAnsweredMessage(oPlayer, AskMoveMessage.INSTANCE).getLocation();
@@ -431,8 +351,8 @@ public class Game implements Runnable
 			}
 			
 			// Notify other players of movement
-			ReportMoveMessage oMoveMessage = ReportMoveMessage.fromPersonAndLocation(oPlayer, oLocation);
-			for(Player oOtherPlayer : oPlayers)
+			ReportMoveMessage oMoveMessage = new ReportMoveMessage(oPlayer, oLocation);
+			for(Person oOtherPlayer : oPlayers)
 			{
 				if(oOtherPlayer != oPlayer)
 				{
@@ -445,13 +365,13 @@ public class Game implements Runnable
 		}
 		
 		// Generate envoy movement
-		Person oEnvoy = Envoy.INSTANCE;
+		Person oEnvoy = Person.Envoy;
 		List<Location> oEnvoyVisitableLocations = oVisitsContext.getVisitableLocations(oEnvoy);
 		Location oEnvoyLocation = oEnvoyVisitableLocations.get(m_oRandom.nextInt(oEnvoyVisitableLocations.size()));
 		
 		// Notify other players of movement
-		ReportMoveMessage oMoveMessage = ReportMoveMessage.fromPersonAndLocation(oEnvoy, oEnvoyLocation);
-		for(Player oPlayer : oPlayers)
+		ReportMoveMessage oMoveMessage = new ReportMoveMessage(oEnvoy, oEnvoyLocation);
+		for(Person oPlayer : oPlayers)
 		{
 			processMessage(oPlayer, oMoveMessage);
 		}
@@ -464,10 +384,9 @@ public class Game implements Runnable
 	{
 		ReportEndMessage oEndMessage = new ReportEndMessage(sMessage);
 
-		Collection<Player> oPlayers = m_oServerContext.getPlayerContext().getInitialPlayers(); 
-		if(!oPlayers.isEmpty())
+		if(!m_oServerContext.getMessageProcessorContext().isEmpty())
 		{
-			for(Player oPlayer : oPlayers)
+			for(Person oPlayer : PlayerContext.getPlayers())
 			{
 				processMessage(oPlayer, oEndMessage);
 			}
@@ -476,14 +395,7 @@ public class Game implements Runnable
 		{
 			for(ListIterator<MessageProcessor> iterProcessors = m_oMessageProcessors.listIterator(); iterProcessors.hasNext();)
 			{
-				MessageProcessor oMessageProcessor = iterProcessors.next();
-				
-				if(m_oGameLog != null)
-				{
-					logSend("Player" + String.valueOf(iterProcessors.previousIndex() + 1), oEndMessage.serialize());
-				}
-				
-				oMessageProcessor.processMessage(oEndMessage);
+				iterProcessors.next().processMessage(oEndMessage);;
 			}
 		}
 	}
@@ -492,37 +404,29 @@ public class Game implements Runnable
 	{
 		final ReportExitMessage oExitMessage = ReportExitMessage.INSTANCE;
 		
-		Collection<Player> oPlayers = m_oServerContext.getPlayerContext().getInitialPlayers(); 
-		if(!oPlayers.isEmpty())
-		{
-			for(Player oPlayer : oPlayers)
-			{
-				processMessage(oPlayer, oExitMessage);
-			}
-		}
-		else
-		{
-			for(ListIterator<MessageProcessor> iterProcessors = m_oMessageProcessors.listIterator(); iterProcessors.hasNext();)
-			{
-				MessageProcessor oMessageProcessor = iterProcessors.next();
-				
-				if(m_oGameLog != null)
-				{
-					logSend("Player" + String.valueOf(iterProcessors.previousIndex() + 1), oExitMessage.serialize());
-				}
-				
-				oMessageProcessor.processMessage(oExitMessage);
-			}
-		}
+      if(!m_oServerContext.getMessageProcessorContext().isEmpty())
+      {
+         for(Person oPlayer : PlayerContext.getPlayers())
+         {
+            processMessage(oPlayer, oExitMessage);
+         }
+      }
+      else
+      {
+         for(ListIterator<MessageProcessor> iterProcessors = m_oMessageProcessors.listIterator(); iterProcessors.hasNext();)
+         {
+            iterProcessors.next().processMessage(oExitMessage);;
+         }
+      }
 	}
 	
-	private <A extends Answer> A processAnsweredMessage(Player oPlayer, AnsweredMessage<A> oMessage) throws PlayerException
+	private <A extends Answer> A processAnsweredMessage(Person oPlayer, AnsweredMessage<A> oMessage) throws PlayerException
 	{
-		MessageProcessor oProcessor = m_oServerContext.getMessageProcessorContext().getMessageProcessor(oPlayer.getName());
+		MessageProcessor oProcessor = m_oServerContext.getMessageProcessorContext().getMessageProcessor(oPlayer);
 		
 		if(m_oGameLog != null)
 		{
-			logSend(oPlayer.getName(), oMessage.serialize());
+			logSend(oPlayer, oMessage.serialize());
 		}
 
 		try
@@ -531,7 +435,7 @@ public class Game implements Runnable
 			
 			if(m_oGameLog != null)
 			{
-				logReceive(oPlayer.getName(), (oAnswer == null) ? "null" : oAnswer.serialize());
+				logReceive(oPlayer, (oAnswer == null) ? "null" : oAnswer.serialize());
 			}
 			
 			if(oAnswer == null)
@@ -547,13 +451,13 @@ public class Game implements Runnable
 		}
 	}
 	
-	private void processMessage(Player oPlayer, Message oMessage)
+	private void processMessage(Person player, Message oMessage)
 	{
-		MessageProcessor oProcessor = m_oServerContext.getMessageProcessorContext().getMessageProcessor(oPlayer.getName());
+		MessageProcessor oProcessor = m_oServerContext.getMessageProcessorContext().getMessageProcessor(player);
 		
 		if(m_oGameLog != null)
 		{
-			logSend(oPlayer.getName(), oMessage.serialize());
+			logSend(player, oMessage.serialize());
 		}
 		
 		oProcessor.processMessage(oMessage);
@@ -561,41 +465,43 @@ public class Game implements Runnable
 	
 	private void handlePlayerException(PlayerException oPlayerException)
 	{
+	   final PlayerContext playerContext = m_oServerContext.getPlayerContext();
+	   
 		// Get the causing player
-		Player oCausingPlayer = oPlayerException.getPlayer();
+		final Person oCausingPlayer = oPlayerException.getPlayer();
+		final Card oCausingPlayerNameCard = playerContext.getNameCard(oCausingPlayer);
 		
 		// Create a list of name cards of that player and his partner
 		List<Card> oAffectedNameCards = new ArrayList<Card>(2);
-		oAffectedNameCards.add(oCausingPlayer.getNameCard());
-		oAffectedNameCards.add(Card.getPartner(oCausingPlayer.getNameCard()));
+      oAffectedNameCards.add(oCausingPlayerNameCard);
+      oAffectedNameCards.add(Card.getPartner(oCausingPlayerNameCard));
 		
 		// Send the end message to all players
 		String sMessage = oPlayerException.getMessage();
-		sendEndMessage(sMessage + " Player: " + oPlayerException.getPlayer().getName());
+		sendEndMessage(sMessage + " Player: " + oPlayerException.getPlayer());
 
-		Collection<Player> oPlayers = m_oServerContext.getPlayerContext().getInitialPlayers();
 		// Send the win and loose messages
-		for(Player oPlayer : oPlayers)
+		for(Person oPlayer : PlayerContext.getPlayers())
 		{
 			// The player is a winner, if the win flag is the same as the fact that he is in the list of affected players
 			// (check it - it's right in that way)
-			boolean bWin = (oPlayerException.isWin() == oAffectedNameCards.contains(oPlayer.getNameCard()));
+			boolean bWin = (oPlayerException.isWin() == oAffectedNameCards.contains(playerContext.getNameCard(oPlayer)));
 
 			// Create the respective message and send it to all message processors
-			ReportWinLooseMessage oMessage = ReportWinLooseMessage.fromPlayer(oPlayer, bWin);
+			ReportWinLooseMessage oMessage = new ReportWinLooseMessage(oPlayer, playerContext.getId(oPlayer), bWin);
 			
-			for(Player oReportedPlayer : oPlayers)
+			for(Person oReportedPlayer : PlayerContext.getPlayers())
 			{
 				processMessage(oReportedPlayer, oMessage);
 			}
 		}
 	}
 
-	private void logSend(String sName, String sContent)
+	private void logSend(Person player, String sContent)
 	{
 		String sMessage = new StringBuffer()
 		.append('[')
-		.append(sName)
+		.append(player.name())
 		.append("] <- ")
 		.append(sContent)
 		.toString();
@@ -603,11 +509,11 @@ public class Game implements Runnable
 		m_oGameLog.info(sMessage);
 	}
 	
-	private void logReceive(String sName, String sContent)
+	private void logReceive(Person person, String sContent)
 	{
 		String sMessage = new StringBuffer()
 		.append('[')
-		.append(sName)
+		.append(person.name())
 		.append("] -> ")
 		.append(sContent)
 		.toString();
@@ -615,4 +521,18 @@ public class Game implements Runnable
 		m_oGameLog.info(sMessage);
 	}
 	
+   public static Game fromDispatchedProcessors(ServerContext oServerContext, final List<? extends DispatchedMessageProcessor> oMessageProcessors, int iGameCount)
+   {
+      return new Game(
+         oServerContext,
+         oMessageProcessors.stream().map(p -> new DispatchedMessageProcessorAdapter(p)).collect(Collectors.toList()),
+         iGameCount);
+   }
+   
+   public static Game fromDispatchedProcessors(ServerContext oServerContext, final List<? extends DispatchedMessageProcessor> oMessageProcessors)
+   {
+      return new Game(
+            oServerContext,
+            oMessageProcessors.stream().map(p -> new DispatchedMessageProcessorAdapter(p)).collect(Collectors.toList()));
+   }
 }

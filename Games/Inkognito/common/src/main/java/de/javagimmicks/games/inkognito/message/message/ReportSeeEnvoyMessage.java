@@ -1,21 +1,16 @@
 package de.javagimmicks.games.inkognito.message.message;
 
 import de.javagimmicks.games.inkognito.model.Card;
-import de.javagimmicks.games.inkognito.model.Player;
+import de.javagimmicks.games.inkognito.model.Person;
 
 public class ReportSeeEnvoyMessage implements Message
 {
-	private final String m_sPlayerName;
+	private final Person player;
 	private final Card m_oCard;
 	
-	public static ReportSeeEnvoyMessage fromPlayerAndCard(final Player oShowingPlayer, final Card oShownCard)
+	public ReportSeeEnvoyMessage(final Person player, final Card oCard)
 	{
-		return new ReportSeeEnvoyMessage(oShowingPlayer.getName(), oShownCard);
-	}
-	
-	public ReportSeeEnvoyMessage(final String sPlayerName, final Card oCard)
-	{
-		m_sPlayerName = sPlayerName;
+	   this.player = player;
 		m_oCard = oCard;
 	}
 
@@ -24,15 +19,15 @@ public class ReportSeeEnvoyMessage implements Message
 		return new StringBuffer()
 			.append(SIG_REP_SEE)
 			.append(' ')
-			.append(m_sPlayerName)
+			.append(player.name())
 			.append(' ')
 			.append(m_oCard)
 			.toString();
 	}
 
-	public String getPlayerName()
+	public Person getPlayer()
 	{
-		return m_sPlayerName;
+		return player;
 	}
 
 	public Card getCard()

@@ -1,6 +1,6 @@
 package de.javagimmicks.games.inkognito.model;
 
-public interface Person
+public enum Person
 {
-	public String getName();
+   Envoy, Player1, Player2, Player3, Player4;
 }

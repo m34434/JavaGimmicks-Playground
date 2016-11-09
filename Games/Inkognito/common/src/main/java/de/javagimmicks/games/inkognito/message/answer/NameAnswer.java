@@ -1,22 +1,23 @@
 package de.javagimmicks.games.inkognito.message.answer;
 
+import de.javagimmicks.games.inkognito.model.Person;
 
 public class NameAnswer implements Answer
 {
-	private final String m_sName;
+	private final Person person;
 
-	public NameAnswer(final String sName)
+	public NameAnswer(final Person person)
 	{
-		m_sName = sName;
+		this.person = person;
 	}
 
-	public String getName()
+	public Person getPerson()
 	{
-		return m_sName;
+		return person;
 	}
 
 	public String serialize()
 	{
-		return m_sName;
+		return person.name();
 	}
 }

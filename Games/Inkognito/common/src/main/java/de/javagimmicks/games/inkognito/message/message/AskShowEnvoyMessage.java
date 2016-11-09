@@ -2,20 +2,15 @@ package de.javagimmicks.games.inkognito.message.message;
 
 import de.javagimmicks.games.inkognito.message.UnexpectedAnswerException;
 import de.javagimmicks.games.inkognito.message.answer.CardAnswer;
-import de.javagimmicks.games.inkognito.model.Player;
+import de.javagimmicks.games.inkognito.model.Person;
 
 public class AskShowEnvoyMessage implements AnsweredMessage<CardAnswer>
 {
-	private final String m_sPlayerName;
+	private final Person player;
 
-	public static AskShowEnvoyMessage fromPlayer(final Player oAskingPlayer)
+	public AskShowEnvoyMessage(final Person player)
 	{
-		return new AskShowEnvoyMessage(oAskingPlayer.getName());
-	}
-	
-	public AskShowEnvoyMessage(final String sPlayerName)
-	{
-		m_sPlayerName = sPlayerName;
+		this.player = player;
 	}
 
 	public String serialize()
@@ -23,13 +18,13 @@ public class AskShowEnvoyMessage implements AnsweredMessage<CardAnswer>
 		return new StringBuffer()
 			.append(SIG_ASK_SHOW)
 			.append(" envoy ")
-			.append(m_sPlayerName)
+			.append(player.name())
 			.toString();
 	}
 
-	public String getPlayerName()
+	public Person getPlayer()
 	{
-		return m_sPlayerName;
+		return player;
 	}
 
 	public CardAnswer parseAnswer(String sAnswer) throws UnexpectedAnswerException

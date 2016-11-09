@@ -5,17 +5,12 @@ import de.javagimmicks.games.inkognito.model.Person;
 
 public class ReportMoveMessage implements Message
 {
-	private final String m_sPerson;
+	private final Person person;
 	private final Location m_oLocation;
 	
-	public static ReportMoveMessage fromPersonAndLocation(Person oPerson, Location oLocation)
+	public ReportMoveMessage(final Person person, final Location oLocation)
 	{
-		return new ReportMoveMessage(oPerson.getName(), oLocation);
-	}
-	
-	public ReportMoveMessage(final String sPerson, final Location oLocation)
-	{
-		m_sPerson = sPerson;
+	   this.person = person;
 		m_oLocation = oLocation;
 	}
 
@@ -24,9 +19,9 @@ public class ReportMoveMessage implements Message
 		return new StringBuffer()
 			.append(SIG_REP_MOVE)
 			.append(' ')
-			.append(m_sPerson)
+			.append(person.name())
 			.append(' ')
-			.append(m_oLocation)
+			.append(m_oLocation.name())
 			.toString();
 	}
 
@@ -35,9 +30,9 @@ public class ReportMoveMessage implements Message
 		return m_oLocation;
 	}
 
-	public String getPersonName()
+	public Person getPerson()
 	{
-		return m_sPerson;
+		return person;
 	}
 	
 }

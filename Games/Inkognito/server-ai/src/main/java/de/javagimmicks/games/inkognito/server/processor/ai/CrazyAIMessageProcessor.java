@@ -10,7 +10,6 @@ import java.util.Queue;
 import java.util.Random;
 
 import de.javagimmicks.games.inkognito.context.GameContext;
-import de.javagimmicks.games.inkognito.context.impl.DefaultGameContext;
 import de.javagimmicks.games.inkognito.message.answer.CardAnswer;
 import de.javagimmicks.games.inkognito.message.answer.LocationAnswer;
 import de.javagimmicks.games.inkognito.message.answer.NameAnswer;
@@ -25,24 +24,24 @@ import de.javagimmicks.games.inkognito.model.Card;
 import de.javagimmicks.games.inkognito.model.CardPair;
 import de.javagimmicks.games.inkognito.model.CardType;
 import de.javagimmicks.games.inkognito.model.Location;
-import de.javagimmicks.games.inkognito.model.Player;
+import de.javagimmicks.games.inkognito.model.Person;
 
 public class CrazyAIMessageProcessor extends AbstractAIMessageProcessor
 {
 	protected static final Random RANDOM = new Random();
-	protected final Map<Player, Queue<CardPair>> m_oShowAnswers = new HashMap<Player, Queue<CardPair>>();
+	protected final Map<Person, Queue<CardPair>> m_oShowAnswers = new HashMap<Person, Queue<CardPair>>();
 	
 	private List<Card> m_oOpponentTelephoneCards;
 	private List<Card> m_oOppenentNameCards;
 
-	protected CrazyAIMessageProcessor(GameContext oGameContext, String sPlayerNameBase)
+	protected CrazyAIMessageProcessor(GameContext oGameContext, String name)
 	{
-		super(oGameContext, sPlayerNameBase);
+		super(oGameContext, name);
 	}
 
-	public CrazyAIMessageProcessor(String sPlayerNameBase)
+	public CrazyAIMessageProcessor(String name)
 	{
-		this(new DefaultGameContext(), sPlayerNameBase);
+		this(new GameContext(), name);
 	}
 	
 	public CrazyAIMessageProcessor()
@@ -67,10 +66,10 @@ public class CrazyAIMessageProcessor extends AbstractAIMessageProcessor
 
 	protected CardAnswer _processAskShowEnvoyMessage(AskShowEnvoyMessage oMessage)
 	{
-		Player oOtherPlayer = getPlayerByName(oMessage.getPlayerName());
+		Person oOtherPlayer = oMessage.getPlayer();
 		
-		Card oOwnNameCard = m_oPlayer.getNameCard();
-		Card oOwnTelephoneCard = m_oPlayer.getTelephoneCard();
+		Card oOwnNameCard = getOwnNameCard();
+		Card oOwnTelephoneCard = getOwnTelephoneCard();
 		
 		if(m_oGameContext.getCardShowingContext().mayPlayerShowId(m_oPlayer, oOtherPlayer, oOwnTelephoneCard))
 		{
@@ -84,7 +83,7 @@ public class CrazyAIMessageProcessor extends AbstractAIMessageProcessor
 
 	protected ShowAnswer _processAskShowMessage(AskShowMessage oMessage)
 	{
-		Player oOtherPlayer = getPlayerByName(oMessage.getPlayerName());
+		Person oOtherPlayer = oMessage.getPlayer();
 		Queue<CardPair> oShowAnswers = m_oShowAnswers.get(oOtherPlayer);
 		
 		if(oShowAnswers == null)
@@ -97,24 +96,24 @@ public class CrazyAIMessageProcessor extends AbstractAIMessageProcessor
 		return (oCardPair == null) ? null : new ShowAnswer(oCardPair);
 	}
 
-	protected NameAnswer processAskMeetMessage(AskMeetMessage oMessage)
+	public NameAnswer processAskMeetMessage(AskMeetMessage oMessage)
 	{
-		for(Player oOtherPlayer : m_oOpponents)
+		for(Person oOtherPlayer : m_oOpponents)
 		{
 			if(m_oGameContext.getCardShowingContext().mayPlayerAskId(m_oPlayer, oOtherPlayer))
 			{
-				return new NameAnswer(oOtherPlayer.getName());
+				return new NameAnswer(oOtherPlayer);
 			}
 		}
 		
 		return null;
 	}
 
-	protected void processReportEndMessage(ReportEndMessage oMessage)
+	public void processReportEndMessage(ReportEndMessage oMessage)
 	{
 	}
 
-	protected void processReportExitMessage(ReportExitMessage oMessage)
+	public void processReportExitMessage(ReportExitMessage oMessage)
 	{
 	}
 
@@ -137,12 +136,16 @@ public class CrazyAIMessageProcessor extends AbstractAIMessageProcessor
 		oWrongCards.addAll(getOpponentTelephoneCards());
 		
 		ArrayList<CardPair> oResult = new ArrayList<CardPair>(2 * oWrongCards.size() + 1);
-		for(Card oWrongCard : oWrongCards)
+		
+		Card ownNameCard = getOwnNameCard();
+		Card ownTelephoneCard = getOwnTelephoneCard();
+      
+      for(Card oWrongCard : oWrongCards)
 		{
-			oResult.add(shuffledCardPair(m_oPlayer.getNameCard(), oWrongCard));
-			oResult.add(shuffledCardPair(m_oPlayer.getTelephoneCard(), oWrongCard));
+			oResult.add(shuffledCardPair(ownNameCard, oWrongCard));
+			oResult.add(shuffledCardPair(ownTelephoneCard, oWrongCard));
 		}
-		oResult.add(shuffledCardPair(m_oPlayer.getNameCard(), m_oPlayer.getTelephoneCard()));
+		oResult.add(shuffledCardPair(ownNameCard, ownTelephoneCard));
 		
 		Collections.shuffle(oResult);
 		
@@ -154,7 +157,7 @@ public class CrazyAIMessageProcessor extends AbstractAIMessageProcessor
 		if(m_oOpponentTelephoneCards == null)
 		{
 			List<Card> oTelephoneCards = Card.getCardsByType(CardType.Telephone);
-			oTelephoneCards.remove(m_oPlayer.getTelephoneCard());
+			oTelephoneCards.remove(getOwnTelephoneCard());
 			m_oOpponentTelephoneCards = Collections.unmodifiableList(oTelephoneCards);
 		}
 		
@@ -166,7 +169,7 @@ public class CrazyAIMessageProcessor extends AbstractAIMessageProcessor
 		if(m_oOppenentNameCards == null)
 		{
 			List<Card> oNameCards = Card.getCardsByType(CardType.Name);
-			oNameCards.remove(m_oPlayer.getNameCard());
+			oNameCards.remove(getOwnNameCard());
 			m_oOppenentNameCards = Collections.unmodifiableList(oNameCards);
 		}
 		

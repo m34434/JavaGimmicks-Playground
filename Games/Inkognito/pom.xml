@@ -10,6 +10,8 @@
 	
 	<properties>
 		<version.gimmickUtils>0.90</version.gimmickUtils>
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
 	</properties>
 	
 	<dependencyManagement>

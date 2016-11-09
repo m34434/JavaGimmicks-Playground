@@ -1,22 +1,64 @@
 package de.javagimmicks.games.inkognito.context;
 
-import java.util.Collection;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import de.javagimmicks.games.inkognito.model.Location;
 import de.javagimmicks.games.inkognito.model.Person;
 
-public interface VisitsContext
+public class VisitsContext
 {
+   private final Map<Person, Set<Location>> m_oVisitedLocations = new HashMap<Person, Set<Location>>();
+   private final LocationsContext m_oLocationsContext;
+   
+   public VisitsContext(final LocationsContext oLocationsContext)
+   {
+      m_oLocationsContext = oLocationsContext;
+   }
 
-	public List<Location> getVisitableLocations(Person oPerson);
+   public List<Location> getVisitableLocations(Person oPerson)
+   {
+      List<Location> oResult = new ArrayList<Location>(Arrays.asList(Location.values()));
+      oResult.removeAll(getVisitedLocations(oPerson));
+      
+      return oResult;
+   }
+   
+   public Set<Location> getVisitedLocations(Person oPerson)
+   {
+      Set<Location> oResult = m_oVisitedLocations.get(oPerson);
+      
+      if(oResult == null)
+      {
+         oResult = new HashSet<Location>();
+         m_oVisitedLocations.put(oPerson, oResult);
+      }
+      
+      return oResult;
+   }
 
-	public Collection<Location> getVisitedLocations(Person oPerson);
-
-	public boolean isLocationVisitable(Person oPerson, Location oLocation);
-
-	public void notifyPersonMove(Person oPerson, Location oLocation);
-
-	public void reset();
-
+   public boolean isLocationVisitable(Person oPerson, Location oLocation)
+   {
+      return !getVisitedLocations(oPerson).contains(oLocation);
+   }
+   
+   public void notifyPersonMove(Person oPerson, Location oLocation)
+   {
+      m_oLocationsContext.notifyPersonMove(oLocation, oPerson);
+      
+      getVisitedLocations(oPerson).add(oLocation);
+   }
+   
+   public void reset()
+   {
+      for(Set<Location> oVisitedLocations : m_oVisitedLocations.values())
+      {
+         oVisitedLocations.clear();
+      }
+   }
 }
