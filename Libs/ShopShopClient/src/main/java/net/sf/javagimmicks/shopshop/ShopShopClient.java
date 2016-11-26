@@ -1,10 +1,9 @@
 package net.sf.javagimmicks.shopshop;
 
 import java.io.IOException;
+import java.util.List;
 
-import com.dd.plist.NSArray;
 import com.dd.plist.NSDictionary;
-import com.dd.plist.NSObject;
 import com.dd.plist.PropertyListFormatException;
 import com.dropbox.core.DbxException;
 import com.dropbox.core.DbxRequestConfig;
@@ -14,7 +13,7 @@ import net.sf.javagimmicks.shopshop.util.ShopShopHelper;
 
 public class ShopShopClient
 {
-   private final DbxClientV2 dropbox;
+   final DbxClientV2 dropbox;
    private final String shoppingListName;
    private final NSDictionary shoppingList;
    
@@ -37,34 +36,21 @@ public class ShopShopClient
       this(new DbxClientV2(new DbxRequestConfig("ShopShopClient"), dropboxAccessToken), shoppingListName);
    }
    
-   public DbxClientV2 getDropboxClient()
+   public String getShoppingListName()
    {
-      return dropbox;
+      return shoppingListName;
    }
-   
-   public void addItem(String count, String item)
-   {
-      ShopShopHelper.addItem(shoppingList, count, item);
-   }
-   
-   public void addItem(String item)
+
+   public void addItem(ListItem item)
    {
       ShopShopHelper.addItem(shoppingList, item);
    }
    
-   public void getItems()
+   public List<ListItem> getItems()
    {
-      final NSArray itemList = (NSArray) shoppingList.get("shoppingList");
-
-      for(NSObject itemRaw : itemList.getArray())
-      {
-         final NSDictionary item = (NSDictionary)itemRaw;
-         
-         System.out.println(item.get("name") + " / " + item.get("done"));
-      }
-
+      return ShopShopHelper.getItems(shoppingList);
    }
-   
+
    public void save() throws ShopShopClientException
    {
       try

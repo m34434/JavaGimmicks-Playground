@@ -26,9 +26,14 @@ public class ShopShopClientTest
    @Test
    public void test() throws ShopShopClientException, DbxApiException, DbxException
    {
-      System.out.println("Linked account: " + shopShopClient.getDropboxClient().users().getCurrentAccount().getName());
+      System.out.println("Linked account: " + shopShopClient.dropbox.users().getCurrentAccount().getName().getDisplayName());
 
-      shopShopClient.addItem("Zufall" + System.currentTimeMillis());
+      for(ListItem i : shopShopClient.getItems())
+      {
+         System.out.println(i);
+      }
+      
+      shopShopClient.addItem(new ListItem("Zufall" + System.currentTimeMillis()));
 
       shopShopClient.save();
    }
