@@ -13,8 +13,6 @@ import org.apache.commons.logging.LogFactory;
 
 import de.javagimmicks.games.inkognito.context.server.ServerContext;
 import de.javagimmicks.games.inkognito.message.DispatchedMessageProcessor;
-import de.javagimmicks.games.inkognito.message.DispatchedMessageProcessorAdapter;
-import de.javagimmicks.games.inkognito.message.MessageProcessor;
 import de.javagimmicks.games.inkognito.server.Game;
 import de.javagimmicks.games.inkognito.server.processor.net.SocketMessageProcessor;
 import net.sf.javagimmicks.lang.Factory;
@@ -25,11 +23,11 @@ public class NetworkServer extends Thread
 	private final int m_iPort;
 	private final ExecutorService m_oExecutor;
     
-	 private final Factory<MessageProcessor> m_oFactoryPlayerB;
-    private final Factory<MessageProcessor> m_oFactoryPlayerC;
-    private final Factory<MessageProcessor> m_oFactoryPlayerD;
+	 private final Factory<DispatchedMessageProcessor> m_oFactoryPlayerB;
+    private final Factory<DispatchedMessageProcessor> m_oFactoryPlayerC;
+    private final Factory<DispatchedMessageProcessor> m_oFactoryPlayerD;
 	
-	public NetworkServer(final int iPort, Factory<MessageProcessor> oFactoryPlayerB, Factory<MessageProcessor> oFactoryPlayerC, Factory<MessageProcessor> oFactoryPlayerD)
+	public NetworkServer(final int iPort, Factory<DispatchedMessageProcessor> oFactoryPlayerB, Factory<DispatchedMessageProcessor> oFactoryPlayerC, Factory<DispatchedMessageProcessor> oFactoryPlayerD)
 	{
 		m_iPort = iPort;
 //		m_oExecutor = Executors.newCachedThreadPool();
@@ -40,7 +38,7 @@ public class NetworkServer extends Thread
 		m_oFactoryPlayerD = oFactoryPlayerD;
 	}
 	
-	public NetworkServer(final int iPort, final Class<? extends MessageProcessor> oClassPlayerB, final Class<? extends MessageProcessor> oClassPlayerC, final Class<? extends MessageProcessor> oClassPlayerD) throws IllegalArgumentException, SecurityException, NoSuchMethodException
+	public NetworkServer(final int iPort, final Class<? extends DispatchedMessageProcessor> oClassPlayerB, final Class<? extends DispatchedMessageProcessor> oClassPlayerC, final Class<? extends DispatchedMessageProcessor> oClassPlayerD) throws IllegalArgumentException, SecurityException, NoSuchMethodException
 	{
 	    this(iPort, new ReflectionFactory<>(oClassPlayerB), new ReflectionFactory<>(oClassPlayerC), new ReflectionFactory<>(oClassPlayerD));
 	}
@@ -128,46 +126,15 @@ public class NetworkServer extends Thread
 			// Create list of message processor:
 			// - The network player
 			// - Three AI player (different levels)
-			List<MessageProcessor> oMessageProcessors = new ArrayList<MessageProcessor>();
+			List<DispatchedMessageProcessor> oMessageProcessors = new ArrayList<DispatchedMessageProcessor>();
 			oMessageProcessors.add(oSocketMessageProcessor);
 			oMessageProcessors.add(m_oFactoryPlayerB.create());
 			oMessageProcessors.add(m_oFactoryPlayerC.create());
 			oMessageProcessors.add(m_oFactoryPlayerD.create());
 			
 			Game oGameHandler = new Game(oServerContext, oMessageProcessors);
-			oGameHandler.setGameLogger(LogFactory.getLog("Game"));
 			
 			m_oExecutor.submit(oGameHandler);
 		}
 	}
-
-   public static NetworkServer fromDispatchedProcessors(final int iPort, Factory<DispatchedMessageProcessor> oFactoryPlayerB, Factory<DispatchedMessageProcessor> oFactoryPlayerC, Factory<DispatchedMessageProcessor> oFactoryPlayerD)
-   {
-      return new NetworkServer(
-         iPort,
-         new DispatchedMessageProcessorWrapperFactory(oFactoryPlayerB),
-         new DispatchedMessageProcessorWrapperFactory(oFactoryPlayerC),
-         new DispatchedMessageProcessorWrapperFactory(oFactoryPlayerD));
-   }
-   
-   public static NetworkServer fromDispatchedProcessors(final int iPort, final Class<? extends DispatchedMessageProcessor> oClassPlayerB, final Class<? extends DispatchedMessageProcessor> oClassPlayerC, final Class<? extends DispatchedMessageProcessor> oClassPlayerD) throws IllegalArgumentException, SecurityException, NoSuchMethodException
-   {
-      return fromDispatchedProcessors(iPort, new ReflectionFactory<>(oClassPlayerB), new ReflectionFactory<>(oClassPlayerC), new ReflectionFactory<>(oClassPlayerD));
-   }
-
-   private static class DispatchedMessageProcessorWrapperFactory implements Factory<MessageProcessor>
-   {
-      private final Factory<DispatchedMessageProcessor> f;
-   
-      public DispatchedMessageProcessorWrapperFactory(Factory<DispatchedMessageProcessor> f)
-      {
-         this.f = f;
-      }
-   
-      @Override
-      public MessageProcessor create()
-      {
-         return new DispatchedMessageProcessorAdapter(f.create());
-      }
-   }
 }

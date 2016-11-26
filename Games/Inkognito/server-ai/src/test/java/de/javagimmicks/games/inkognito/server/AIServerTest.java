@@ -26,8 +26,7 @@ public class AIServerTest
 		AbstractAIMessageProcessor oPlayer4 = new SmartAIMessageProcessor();
 		
 		List<AbstractAIMessageProcessor> oPlayers = Arrays.asList(oPlayer1, oPlayer2, oPlayer3, oPlayer4);
-		Game oGameHandler = Game.fromDispatchedProcessors(new ServerContext(), oPlayers, 20000);
-//		oGameHandler.setGameLogger(GAME_LOG);
+		Game oGameHandler = new Game(new ServerContext(), oPlayers, 20000);
 		
 		oGameHandler.run();
 		

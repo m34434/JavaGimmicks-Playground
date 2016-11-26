@@ -6,9 +6,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Random;
-import java.util.stream.Collectors;
-
-import org.apache.commons.logging.Log;
 
 import de.javagimmicks.games.inkognito.context.CardShowingContext;
 import de.javagimmicks.games.inkognito.context.LocationsContext;
@@ -16,17 +13,11 @@ import de.javagimmicks.games.inkognito.context.PlayerContext;
 import de.javagimmicks.games.inkognito.context.VisitsContext;
 import de.javagimmicks.games.inkognito.context.server.ServerContext;
 import de.javagimmicks.games.inkognito.message.DispatchedMessageProcessor;
-import de.javagimmicks.games.inkognito.message.DispatchedMessageProcessorAdapter;
-import de.javagimmicks.games.inkognito.message.MessageProcessor;
-import de.javagimmicks.games.inkognito.message.UnexpectedAnswerException;
-import de.javagimmicks.games.inkognito.message.answer.Answer;
 import de.javagimmicks.games.inkognito.message.answer.ShowAnswer;
-import de.javagimmicks.games.inkognito.message.message.AnsweredMessage;
 import de.javagimmicks.games.inkognito.message.message.AskMeetMessage;
 import de.javagimmicks.games.inkognito.message.message.AskMoveMessage;
 import de.javagimmicks.games.inkognito.message.message.AskShowEnvoyMessage;
 import de.javagimmicks.games.inkognito.message.message.AskShowMessage;
-import de.javagimmicks.games.inkognito.message.message.Message;
 import de.javagimmicks.games.inkognito.message.message.ReportEndMessage;
 import de.javagimmicks.games.inkognito.message.message.ReportExitMessage;
 import de.javagimmicks.games.inkognito.message.message.ReportIdMessage;
@@ -43,14 +34,12 @@ import de.javagimmicks.games.inkognito.model.Person;
 
 public class Game implements Runnable
 {
-	private final List<MessageProcessor> m_oMessageProcessors;
+	private final List<DispatchedMessageProcessor> m_oMessageProcessors;
 	private final ServerContext m_oServerContext;
 	private final Random m_oRandom = new Random();
 	private final int m_iGameCount;
 
-	private Log m_oGameLog;
-	
-	public Game(ServerContext oServerContext, final List<? extends MessageProcessor> oMessageProcessors, int iGameCount)
+	public Game(ServerContext oServerContext, final List<? extends DispatchedMessageProcessor> oMessageProcessors, int iGameCount)
 	{
 		if(oMessageProcessors.size() != Card.getNameCount())
 		{
@@ -62,21 +51,16 @@ public class Game implements Runnable
 			throw new IllegalArgumentException("Number of games to play must be greater than 0!");
 		}
 		
-		m_oMessageProcessors = new ArrayList<MessageProcessor>(oMessageProcessors);
+		m_oMessageProcessors = new ArrayList<DispatchedMessageProcessor>(oMessageProcessors);
 		m_oServerContext = oServerContext;
 		m_iGameCount = iGameCount;
 	}
 	
-	public Game(ServerContext oServerContext, final List<MessageProcessor> oMessageProcessors)
+	public Game(ServerContext oServerContext, final List<DispatchedMessageProcessor> oMessageProcessors)
 	{
 		this(oServerContext, oMessageProcessors, 1);
 	}
 	
-	public void setGameLogger(Log oGameLogger)
-	{
-		m_oGameLog = oGameLogger;
-	}
-
 	public void run()
 	{
 		// Shuffle message processors
@@ -138,11 +122,11 @@ public class Game implements Runnable
 	
 	private void registerMessageProcessors()
 	{
-		Iterator<MessageProcessor> iterMessageProcessors = m_oMessageProcessors.iterator();
+		Iterator<DispatchedMessageProcessor> iterMessageProcessors = m_oMessageProcessors.iterator();
 		
 		for(Person player : PlayerContext.getPlayers())
 		{
-			MessageProcessor oMessageProcessor = iterMessageProcessors.next();
+		   DispatchedMessageProcessor oMessageProcessor = iterMessageProcessors.next();
 			
 			m_oServerContext.getMessageProcessorContext().registerMessageProcessor(player, oMessageProcessor);
 		}
@@ -153,7 +137,7 @@ public class Game implements Runnable
 	   for(Person player : PlayerContext.getPlayers())
 	   {
 	      final ReportNameMessage oNamesMessage = new ReportNameMessage(player);
-	      processMessage(player, oNamesMessage);
+	      getPlayerHandler(player).processReportNameMessage(oNamesMessage);
 	   }
 	}
 	
@@ -180,7 +164,7 @@ public class Game implements Runnable
 			playerContext.setNameCard(oPlayer, oNameCard);
 			playerContext.setTelephoneCard(oPlayer, oTelephoneCard);
 			
-			processMessage(oPlayer, new ReportIdMessage(oNameCard, oTelephoneCard));
+			getPlayerHandler(oPlayer).processReportIdMessage(new ReportIdMessage(oNameCard, oTelephoneCard));
 		}
 	}
 
@@ -224,7 +208,7 @@ public class Game implements Runnable
 	private void processMeetEnvoy(Person oAskingPlayer) throws PlayerException
 	{
 		// Ask the asking player, which other player he wants to meet
-		Person oShowingPlayer = processAnsweredMessage(oAskingPlayer, AskMeetMessage.INSTANCE).getPerson(); 
+		Person oShowingPlayer = getPlayerHandler(oAskingPlayer).processAskMeetMessage(AskMeetMessage.INSTANCE).getPerson(); 
 
 		CardShowingContext oCardShowingContext = m_oServerContext.getCardShowingContext();
 		
@@ -241,7 +225,7 @@ public class Game implements Runnable
 		}
 		
 		// Ask the other player for a card to show
-		Card oShownCard = processAnsweredMessage(oShowingPlayer, new AskShowEnvoyMessage(oAskingPlayer)).getCard();
+		Card oShownCard = getPlayerHandler(oShowingPlayer).processAskShowEnvoyMessage(new AskShowEnvoyMessage(oAskingPlayer)).getCard();
 	
 		// Check, if the showing player was showing a valid card
 		if(!oCardShowingContext.mayPlayerShowId(oShowingPlayer, oAskingPlayer, oShownCard))
@@ -250,7 +234,7 @@ public class Game implements Runnable
 		}
 		
 		// Forward the information to the asking player
-		processMessage(oAskingPlayer, new ReportSeeEnvoyMessage(oShowingPlayer, oShownCard));
+		getPlayerHandler(oAskingPlayer).processReportSeeEnvoyMessage(new ReportSeeEnvoyMessage(oShowingPlayer, oShownCard));
 		
 		// Register the information in the context
 		oCardShowingContext.notifiyPlayerShow(oShowingPlayer, oAskingPlayer, oShownCard);
@@ -267,7 +251,7 @@ public class Game implements Runnable
 		CardShowingContext oCardShowingContext = m_oServerContext.getCardShowingContext();
 
 		// Ask the showing player for his card pair
-		ShowAnswer oShowAnswer = processAnsweredMessage(oShowingPlayer, new AskShowMessage(oAskingPlayer));
+		ShowAnswer oShowAnswer = getPlayerHandler(oShowingPlayer).processAskShowMessage(new AskShowMessage(oAskingPlayer));
 		
 		// Special treatment for the phone call
 		if(oShowAnswer.isPhoneCall())
@@ -285,7 +269,7 @@ public class Game implements Runnable
 			}
 			
 			// Forward the information to the asking player
-			processMessage(oAskingPlayer, new ReportSeeMessage(oShowingPlayer, oShownPair));
+			getPlayerHandler(oAskingPlayer).processReportSeeMessage(new ReportSeeMessage(oShowingPlayer, oShownPair));
 			
 			// Register the information in the context
 			oCardShowingContext.notifiyPlayerShow(oShowingPlayer, oAskingPlayer, oShownPair);
@@ -342,7 +326,7 @@ public class Game implements Runnable
 		for(Person oPlayer : oPlayers)
 		{
 			// Ask the player where to move
-			Location oLocation = processAnsweredMessage(oPlayer, AskMoveMessage.INSTANCE).getLocation();
+			Location oLocation = getPlayerHandler(oPlayer).processAskMoveMessage(AskMoveMessage.INSTANCE).getLocation();
 			
 			// Check if he may move there
 			if(!oVisitsContext.isLocationVisitable(oPlayer, oLocation))
@@ -356,7 +340,7 @@ public class Game implements Runnable
 			{
 				if(oOtherPlayer != oPlayer)
 				{
-					processMessage(oOtherPlayer, oMoveMessage);
+					getPlayerHandler(oOtherPlayer).processReportMoveMessage(oMoveMessage);
 				}
 			}
 
@@ -373,7 +357,7 @@ public class Game implements Runnable
 		ReportMoveMessage oMoveMessage = new ReportMoveMessage(oEnvoy, oEnvoyLocation);
 		for(Person oPlayer : oPlayers)
 		{
-			processMessage(oPlayer, oMoveMessage);
+			getPlayerHandler(oPlayer).processReportMoveMessage(oMoveMessage);
 		}
 
 		// Register movement in the context
@@ -388,14 +372,14 @@ public class Game implements Runnable
 		{
 			for(Person oPlayer : PlayerContext.getPlayers())
 			{
-				processMessage(oPlayer, oEndMessage);
+			   getPlayerHandler(oPlayer).processReportEndMessage(oEndMessage);
 			}
 		}
 		else
 		{
-			for(ListIterator<MessageProcessor> iterProcessors = m_oMessageProcessors.listIterator(); iterProcessors.hasNext();)
+			for(ListIterator<DispatchedMessageProcessor> iterProcessors = m_oMessageProcessors.listIterator(); iterProcessors.hasNext();)
 			{
-				iterProcessors.next().processMessage(oEndMessage);;
+				iterProcessors.next().processReportEndMessage(oEndMessage);
 			}
 		}
 	}
@@ -408,60 +392,22 @@ public class Game implements Runnable
       {
          for(Person oPlayer : PlayerContext.getPlayers())
          {
-            processMessage(oPlayer, oExitMessage);
+            getPlayerHandler(oPlayer).processReportExitMessage(oExitMessage);
          }
       }
       else
       {
-         for(ListIterator<MessageProcessor> iterProcessors = m_oMessageProcessors.listIterator(); iterProcessors.hasNext();)
+         for(ListIterator<DispatchedMessageProcessor> iterProcessors = m_oMessageProcessors.listIterator(); iterProcessors.hasNext();)
          {
-            iterProcessors.next().processMessage(oExitMessage);;
+            iterProcessors.next().processReportExitMessage(oExitMessage);
          }
       }
 	}
-	
-	private <A extends Answer> A processAnsweredMessage(Person oPlayer, AnsweredMessage<A> oMessage) throws PlayerException
-	{
-		MessageProcessor oProcessor = m_oServerContext.getMessageProcessorContext().getMessageProcessor(oPlayer);
-		
-		if(m_oGameLog != null)
-		{
-			logSend(oPlayer, oMessage.serialize());
-		}
 
-		try
-		{
-			A oAnswer = oProcessor.processAnsweredMessage(oMessage);
-			
-			if(m_oGameLog != null)
-			{
-				logReceive(oPlayer, (oAnswer == null) ? "null" : oAnswer.serialize());
-			}
-			
-			if(oAnswer == null)
-			{
-				throw new PlayerException(oPlayer, "Null answer given!");
-			}
-			
-			return oAnswer;
-		}
-		catch (UnexpectedAnswerException e)
-		{
-			throw new PlayerException(oPlayer, e);
-		}
-	}
-	
-	private void processMessage(Person player, Message oMessage)
-	{
-		MessageProcessor oProcessor = m_oServerContext.getMessageProcessorContext().getMessageProcessor(player);
-		
-		if(m_oGameLog != null)
-		{
-			logSend(player, oMessage.serialize());
-		}
-		
-		oProcessor.processMessage(oMessage);
-	}
+   private DispatchedMessageProcessor getPlayerHandler(Person oPlayer)
+   {
+      return m_oServerContext.getMessageProcessorContext().getMessageProcessor(oPlayer);
+   }
 	
 	private void handlePlayerException(PlayerException oPlayerException)
 	{
@@ -492,47 +438,8 @@ public class Game implements Runnable
 			
 			for(Person oReportedPlayer : PlayerContext.getPlayers())
 			{
-				processMessage(oReportedPlayer, oMessage);
+			   getPlayerHandler(oReportedPlayer).processReportWinLooseMessage(oMessage);
 			}
 		}
 	}
-
-	private void logSend(Person player, String sContent)
-	{
-		String sMessage = new StringBuffer()
-		.append('[')
-		.append(player.name())
-		.append("] <- ")
-		.append(sContent)
-		.toString();
-		
-		m_oGameLog.info(sMessage);
-	}
-	
-	private void logReceive(Person person, String sContent)
-	{
-		String sMessage = new StringBuffer()
-		.append('[')
-		.append(person.name())
-		.append("] -> ")
-		.append(sContent)
-		.toString();
-		
-		m_oGameLog.info(sMessage);
-	}
-	
-   public static Game fromDispatchedProcessors(ServerContext oServerContext, final List<? extends DispatchedMessageProcessor> oMessageProcessors, int iGameCount)
-   {
-      return new Game(
-         oServerContext,
-         oMessageProcessors.stream().map(p -> new DispatchedMessageProcessorAdapter(p)).collect(Collectors.toList()),
-         iGameCount);
-   }
-   
-   public static Game fromDispatchedProcessors(ServerContext oServerContext, final List<? extends DispatchedMessageProcessor> oMessageProcessors)
-   {
-      return new Game(
-            oServerContext,
-            oMessageProcessors.stream().map(p -> new DispatchedMessageProcessorAdapter(p)).collect(Collectors.toList()));
-   }
 }

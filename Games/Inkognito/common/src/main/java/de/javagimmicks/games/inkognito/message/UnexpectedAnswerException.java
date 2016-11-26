@@ -1,6 +1,6 @@
 package de.javagimmicks.games.inkognito.message;
 
-public class UnexpectedAnswerException extends Exception
+public class UnexpectedAnswerException extends IllegalArgumentException
 {
 	private static final long serialVersionUID = 7583139285057666894L;
 
