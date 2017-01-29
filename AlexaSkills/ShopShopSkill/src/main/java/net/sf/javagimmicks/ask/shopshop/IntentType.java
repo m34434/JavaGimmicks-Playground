@@ -5,6 +5,7 @@ public enum IntentType
    GetCurrentListName,
    GetAllListNames,
    SwitchList,
+   ReadList,
    AddAmountItemTyped,
    AddAmountItem,
    AddItem;

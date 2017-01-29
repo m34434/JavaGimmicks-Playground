@@ -1,0 +1,12 @@
+Einkaufsliste
+Apotheke
+Urlaub
+Supermarkt
+Drogerie
+Baumarkt
+Lebensmittel
+Dehner
+Elektronik
+Kleidung
+Garten
+Musik

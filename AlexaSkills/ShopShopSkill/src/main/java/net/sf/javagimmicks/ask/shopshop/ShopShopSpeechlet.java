@@ -1,6 +1,7 @@
 package net.sf.javagimmicks.ask.shopshop;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
@@ -188,6 +189,24 @@ public class ShopShopSpeechlet implements Speechlet
          ShopShopDao.save(getDb(), userData);
    
          return newSpeechletAskResponseWithReprompt("switch.done", "welcome.reprompt", listName);
+      }
+      
+      //////////
+      // Read the current list
+      /////////      
+      if (intentType == IntentType.ReadList)
+      {
+         final String listName = getSelectedListName(userData);
+         
+         final List<ListItem> listItems = getItems(userData, listName);
+         final List<String> listItemStrings = new ArrayList<>(listItems.size());
+         
+         for(ListItem i : listItems)
+         {
+            listItemStrings.add(getListItemSpokenText(i));
+         }
+         
+         return newSpeechletAskResponseWithReprompt("readList", "welcome.reprompt", listName, String.join(", ", listItemStrings));
       }
       
       //////////
@@ -406,10 +425,6 @@ public class ShopShopSpeechlet implements Speechlet
       {
          throw new SpeechletResponseThrowable(newSpeechletAskResponseWithReprompt("addItem.noitem", "welcome.reprompt"));
       }
-      else if (itemName.equals("schokolade"))
-      {
-         throw new SpeechletResponseThrowable(newSpeechletAskResponseWithReprompt("addItem.bad", "welcome.reprompt"));
-      }
       
       return itemName;
    }
@@ -449,6 +464,19 @@ public class ShopShopSpeechlet implements Speechlet
       }
       
       return newSpeechletAskResponseWithReprompt("addItem.ok", "welcome.reprompt", getListItemSpokenText(listItem));
+   }
+   
+   private List<ListItem> getItems(final ShopShopUserData userData, final String listName) throws SpeechletResponseThrowable
+   {
+      try
+      {
+         final ShopShopClient shopShopClient = new ShopShopClient(userData.getDropboxAccessToken(), listName);
+         return shopShopClient.getItems();
+      }
+      catch (ShopShopClientException e)
+      {
+         throw new SpeechletResponseThrowable(newSpeechletAskResponseWithReprompt("dropbox.connect.error", "welcome.reprompt"));
+      }
    }
 
    private static String findList(Collection<String> listNames, String listName)
