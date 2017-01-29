@@ -7,6 +7,8 @@ import org.junit.Test;
 import com.dropbox.core.DbxApiException;
 import com.dropbox.core.DbxException;
 
+import net.sf.javagimmicks.shopshop.util.ShopShopHelper;
+
 public class ShopShopClientTest
 {
    // Get your app key and secret from the Dropbox developers website.
@@ -33,8 +35,16 @@ public class ShopShopClientTest
          System.out.println(i);
       }
       
-      shopShopClient.addItem(new ListItem("Zufall" + System.currentTimeMillis()));
+//      shopShopClient.addItem(new ListItem("Zufall" + System.currentTimeMillis()));
+//
+//      shopShopClient.save();
+   }
 
-      shopShopClient.save();
+   @Test
+   public void testGetListNames() throws ShopShopClientException, DbxApiException, DbxException
+   {
+      System.out.println("Linked account: " + shopShopClient.dropbox.users().getCurrentAccount().getName().getDisplayName());
+
+      System.out.println(ShopShopHelper.getShoppingListNames(shopShopClient.dropbox));
    }
 }

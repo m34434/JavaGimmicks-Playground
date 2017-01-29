@@ -1,5 +1,7 @@
 package net.sf.javagimmicks.ask.shopshop;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Locale;
 
 import org.slf4j.Logger;
@@ -19,9 +21,11 @@ import com.amazon.speech.ui.PlainTextOutputSpeech;
 import com.amazon.speech.ui.Reprompt;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
+import com.dropbox.core.DbxException;
 
 import net.sf.javagimmicks.ask.shopshop.model.ShopShopDao;
 import net.sf.javagimmicks.ask.shopshop.model.ShopShopUserData;
+import net.sf.javagimmicks.shopshop.util.ShopShopHelper;
 
 public class ShopShopSpeechlet implements Speechlet
 {
@@ -71,15 +75,22 @@ public class ShopShopSpeechlet implements Speechlet
       log.info("onIntent requestId={}, sessionId={}", request.getRequestId(),
             session.getSessionId());
 
-      final ShopShopUserData userData = getUserData();
-      if (userData.getDropboxAccessToken() == null)
-      {
-         return newSpeechletTellResponse("dropbox.notoken");
-      }
-
       final Intent intent = request.getIntent();
-      final IntentType intentType = IntentType.valueOf(intent.getName());
+      final String intentName = intent.getName();
+      
+      //////////
+      // Canceling and stopping
+      /////////      
+      if("AMAZON.StopIntent".equals(intentName) || "AMAZON.CancelIntent".equals(intentName))
+      {
+         return newSpeechletTellResponse("goodbye");
+      }
+      
+      final IntentType intentType = IntentType.valueOf(intentName);
 
+      //////////
+      // Get the current list name
+      /////////      
       if(intentType == IntentType.GetCurrentListName)
       {
          final String listName = userData.getListName();
@@ -93,11 +104,38 @@ public class ShopShopSpeechlet implements Speechlet
             return newSpeechletAskResponse("getListName.noList");
          }
       }
+
+      final ShopShopUserData userData = getUserData();
+      if (userData.getDropboxAccessToken() == null)
+      {
+         return newSpeechletTellResponse("dropbox.notoken");
+      }
       
       if (intentType == IntentType.SwitchList)
       {
          final String listName = intent.getSlot("ListName").getValue();
-         userData.setListName(listName);
+         if(listName == null)
+         {
+            return newSpeechletAskResponseWithReprompt("switch.unknownList.slot", "welcome.reprompt");
+         }
+         
+         final List<String> avaiblableLists;
+         try
+         {
+            avaiblableLists = ShopShopHelper.getShoppingListNames(userData.getDropboxAccessToken());
+         }
+         catch (DbxException e)
+         {
+            return newSpeechletAskResponseWithReprompt("dropbox.connect.error", "welcome.reprompt");
+         }
+         
+         final String realListName = findList(avaiblableLists, listName);
+         if(realListName == null)
+         {
+            return newSpeechletAskResponse("switch.unknownList", listName, String.join(", ", avaiblableLists));
+         }
+         
+         userData.setListName(realListName);
          ShopShopDao.save(getDb(), userData);
 
          return newSpeechletAskResponseWithReprompt("switch.done", "welcome.reprompt", listName);
@@ -186,5 +224,18 @@ public class ShopShopSpeechlet implements Speechlet
    protected static SpeechletResponse newSpeechletAskResponse(String messageKey, Object... args)
    {
       return newSpeechletAskResponseWithReprompt(messageKey, messageKey, args);
+   }
+   
+   private static String findList(Collection<String> listNames, String listName)
+   {
+      for(String currentListName : listNames)
+      {
+         if(currentListName.equalsIgnoreCase(listName))
+         {
+            return currentListName;
+         }
+      }
+      
+      return null;
    }
 }
