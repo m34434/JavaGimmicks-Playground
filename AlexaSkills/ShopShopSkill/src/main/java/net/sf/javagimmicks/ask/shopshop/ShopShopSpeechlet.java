@@ -1,5 +1,6 @@
 package net.sf.javagimmicks.ask.shopshop;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
@@ -34,11 +35,14 @@ import net.sf.javagimmicks.shopshop.util.ShopShopHelper;
 
 public class ShopShopSpeechlet implements Speechlet
 {
-   private static final String BUNDLE_NAME = "messages";
-
    private static final Logger log = LoggerFactory.getLogger(ShopShopSpeechlet.class);
    
+   private static final String MSG_FATAL_ERROR = "fatalError";
+
+   private static final String BUNDLE_NAME = "messages";
+
    private ResourceBundle bundle;
+   private AmountTypes amountTypes;
 
    private AmazonDynamoDB db;
 
@@ -194,25 +198,57 @@ public class ShopShopSpeechlet implements Speechlet
          final String listName = getSelectedListName(userData);
 
          final String itemName = getItemName(intent);
+         final ListItem listItem = new ListItem(itemName);
 
-         try
+         return addItem(userData, listName, listItem);
+      }
+   
+      //////////
+      // Add item with amount to list
+      /////////      
+      if(intentType == IntentType.AddAmountItem)
+      {
+         final String listName = getSelectedListName(userData);
+
+         final String amount = getAmount(intent);
+         final String itemName = getItemName(intent);
+         
+         final ListItem listItem = new ListItem(amount, itemName);
+
+         return addItem(userData, listName, listItem);
+      }
+   
+      //////////
+      // Add item with amount and type to list
+      /////////      
+      if(intentType == IntentType.AddAmountItemTyped)
+      {
+         final String listName = getSelectedListName(userData);
+
+         final String amountTypeSpoken = getAmountType(intent);
+         final String amount = getAmount(intent);
+         final String itemName = getItemName(intent);
+
+         String amountFullText = amount;
+         if(amountTypeSpoken != null)
          {
-            final ShopShopClient shopShopClient = new ShopShopClient(userData.getDropboxAccessToken(), listName);
-            shopShopClient.addItem(new ListItem(itemName));
-            shopShopClient.save();
-         }
-         catch (ShopShopClientException e)
-         {
-            throw new SpeechletResponseThrowable(newSpeechletAskResponseWithReprompt("dropbox.connect.error", "welcome.reprompt"));
+            final String amountAbbreviation = getAmountTypes().getAbbreviation(amountTypeSpoken.toLowerCase());
+            
+            if(amountAbbreviation != null)
+            {
+               amountFullText = amount + " " + amountAbbreviation;
+            }
          }
          
-         return newSpeechletAskResponseWithReprompt("addItem.ok", "welcome.reprompt", itemName);
+         final ListItem listItem = new ListItem(amountFullText, itemName);
+
+         return addItem(userData, listName, listItem);
       }
    
       return newSpeechletAskResponseWithReprompt("unknownIntent", "welcome.reprompt");
    }
 
-   protected String getMessage(String key)
+   protected String getMessage(String key) throws SpeechletResponseThrowable
    {
        try
        {
@@ -220,11 +256,11 @@ public class ShopShopSpeechlet implements Speechlet
        }
        catch(MissingResourceException e)
        {
-           return '!' + key + '!';
+           throw new SpeechletResponseThrowable(newSpeechletTellResponse(MSG_FATAL_ERROR));
        }
    }
    
-   protected SpeechletResponse newSpeechletTellResponse(String messageKey, Object... args)
+   protected SpeechletResponse newSpeechletTellResponse(String messageKey, Object... args) throws SpeechletResponseThrowable
    {
       final PlainTextOutputSpeech speech = new PlainTextOutputSpeech();
       speech.setText(String.format(getMessage(messageKey), args));
@@ -236,7 +272,7 @@ public class ShopShopSpeechlet implements Speechlet
    }
 
    protected SpeechletResponse newSpeechletAskResponseWithReprompt(String messageKey, String repromptMessageKey,
-         Object... args)
+         Object... args) throws SpeechletResponseThrowable
    {
       final PlainTextOutputSpeech speech = new PlainTextOutputSpeech();
       speech.setText(String.format(getMessage(messageKey), args));
@@ -253,7 +289,7 @@ public class ShopShopSpeechlet implements Speechlet
       return SpeechletResponse.newAskResponse(speech, reprompt);
    }
 
-   protected SpeechletResponse newSpeechletAskResponse(String messageKey, Object... args)
+   protected SpeechletResponse newSpeechletAskResponse(String messageKey, Object... args) throws SpeechletResponseThrowable
    {
       return newSpeechletAskResponseWithReprompt(messageKey, messageKey, args);
    }
@@ -262,10 +298,10 @@ public class ShopShopSpeechlet implements Speechlet
    {
       this.session = session;
 
-      final Locale languageLocale = Locale.forLanguageTag(request.getLocale().getLanguage());
-      bundle = ResourceBundle.getBundle(BUNDLE_NAME, languageLocale);
+      final String language = request.getLocale().getLanguage();
+      bundle = ResourceBundle.getBundle(BUNDLE_NAME, Locale.forLanguageTag(language));
    }
-   
+
    private ShopShopUserData getUserData()
    {
       ShopShopUserData userData = ShopShopDao.load(getDb(), session.getUser().getUserId());
@@ -293,6 +329,25 @@ public class ShopShopSpeechlet implements Speechlet
       return db;
    }
    
+   private AmountTypes getAmountTypes() throws SpeechletResponseThrowable
+   {
+      final String language = bundle.getLocale().getLanguage();
+      
+      if(amountTypes == null || !language.equals(amountTypes.getLanguage()))
+      {
+         try
+         {
+            amountTypes = new AmountTypes(language);
+         }
+         catch (IOException e)
+         {
+            throw new SpeechletResponseThrowable(newSpeechletTellResponse(MSG_FATAL_ERROR));
+         }
+      }
+      
+      return amountTypes;
+   }
+
    private List<String> getAvailableListNames(ShopShopUserData userData) throws SpeechletResponseThrowable
    {
       try
@@ -322,6 +377,28 @@ public class ShopShopSpeechlet implements Speechlet
       return listName;
    }
 
+   private String getAmount(Intent intent) throws SpeechletResponseThrowable
+   {
+      final String amount = intent.getSlot("Amount").getValue();
+      if(amount == null || amount.length() == 0)
+      {
+         throw new SpeechletResponseThrowable(newSpeechletAskResponseWithReprompt("addItem.noamount", "welcome.reprompt"));
+      }
+      
+      return amount;
+   }
+
+   private String getAmountType(Intent intent) throws SpeechletResponseThrowable
+   {
+      String amountType = intent.getSlot("AmountType").getValue();
+      if(amountType == null || amountType.length() == 0)
+      {
+         throw new SpeechletResponseThrowable(newSpeechletAskResponseWithReprompt("addItem.noamounttype", "welcome.reprompt"));
+      }
+      
+      return amountType;
+   }
+
    private String getItemName(Intent intent) throws SpeechletResponseThrowable
    {
       final String itemName = intent.getSlot("ItemName").getValue();
@@ -329,8 +406,49 @@ public class ShopShopSpeechlet implements Speechlet
       {
          throw new SpeechletResponseThrowable(newSpeechletAskResponseWithReprompt("addItem.noitem", "welcome.reprompt"));
       }
+      else if (itemName.equals("schokolade"))
+      {
+         throw new SpeechletResponseThrowable(newSpeechletAskResponseWithReprompt("addItem.bad", "welcome.reprompt"));
+      }
       
       return itemName;
+   }
+   
+   private String getListItemSpokenText(ListItem listItem) throws SpeechletResponseThrowable
+   {
+      final String itemName = listItem.getName();
+      final String amountFullText = listItem.getCount();
+      
+      if(amountFullText == null || amountFullText.length() == 0)
+      {
+         return itemName;
+      }
+      
+      final String[] amountParts = amountFullText.split(" ");
+      if(amountParts.length == 1)
+      {
+         return amountParts[0] + " " + itemName;
+      }
+      else
+      {
+         return amountParts[0] + " " + getAmountTypes().getSpokenType(amountParts[1]) + " " + itemName;
+      }
+   }
+
+   private SpeechletResponse addItem(final ShopShopUserData userData, final String listName, final ListItem listItem) throws SpeechletResponseThrowable
+   {
+      try
+      {
+         final ShopShopClient shopShopClient = new ShopShopClient(userData.getDropboxAccessToken(), listName);
+         shopShopClient.addItem(listItem);
+         shopShopClient.save();
+      }
+      catch (ShopShopClientException e)
+      {
+         throw new SpeechletResponseThrowable(newSpeechletAskResponseWithReprompt("dropbox.connect.error", "welcome.reprompt"));
+      }
+      
+      return newSpeechletAskResponseWithReprompt("addItem.ok", "welcome.reprompt", getListItemSpokenText(listItem));
    }
 
    private static String findList(Collection<String> listNames, String listName)

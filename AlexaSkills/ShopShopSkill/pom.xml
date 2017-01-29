@@ -21,6 +21,12 @@
 		</dependency>
 
 		<dependency>
+			<groupId>net.sf.javagimmicks</groupId>
+			<artifactId>gimmicks-collections</artifactId>
+			<version>0.97</version>
+		</dependency>
+
+		<dependency>
 			<groupId>com.amazon.alexa</groupId>
 			<artifactId>alexa-skills-kit</artifactId>
 			<version>1.2</version>
