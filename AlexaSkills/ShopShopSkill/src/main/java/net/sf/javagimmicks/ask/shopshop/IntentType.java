@@ -8,5 +8,6 @@ public enum IntentType
    ReadList,
    AddAmountItemTyped,
    AddAmountItem,
-   AddItem;
+   AddItem,
+   RemoveItem;
 }

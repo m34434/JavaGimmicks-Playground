@@ -58,6 +58,15 @@
       ]
     },
     {
+      "intent": "RemoveItem",
+      "slots": [
+        {
+          "name": "ItemName",
+          "type": "ITEM_NAME"
+        }
+      ]
+    },
+    {
       "intent": "AMAZON.HelpIntent"
     },
     {

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
@@ -264,6 +265,18 @@ public class ShopShopSpeechlet implements Speechlet
          return addItem(userData, listName, listItem);
       }
    
+      //////////
+      // Remove item from list
+      /////////      
+      if(intentType == IntentType.RemoveItem)
+      {
+         final String listName = getSelectedListName(userData);
+
+         final String itemName = getItemName(intent);
+
+         return removeItem(userData, listName, itemName);
+      }
+
       return newSpeechletAskResponseWithReprompt("unknownIntent", "welcome.reprompt");
    }
 
@@ -460,10 +473,41 @@ public class ShopShopSpeechlet implements Speechlet
       }
       catch (ShopShopClientException e)
       {
-         throw new SpeechletResponseThrowable(newSpeechletAskResponseWithReprompt("dropbox.connect.error", "welcome.reprompt"));
+         return newSpeechletAskResponseWithReprompt("dropbox.connect.error", "welcome.reprompt");
       }
       
       return newSpeechletAskResponseWithReprompt("addItem.ok", "welcome.reprompt", getListItemSpokenText(listItem));
+   }
+   
+   private SpeechletResponse removeItem(final ShopShopUserData userData, final String listName, final String itemName) throws SpeechletResponseThrowable
+   {
+      if(itemName == null)
+      {
+         return newSpeechletAskResponseWithReprompt("removeItem.noitem", "welcome.reprompt");
+      }
+      
+      try
+      {
+         final ShopShopClient shopShopClient = new ShopShopClient(userData.getDropboxAccessToken(), listName);
+         for(ListIterator<ListItem> i = shopShopClient.getItems().listIterator(); i.hasNext();)
+         {
+            final ListItem listItem = i.next();
+            
+            if(itemName.equalsIgnoreCase(listItem.getName()))
+            {
+               shopShopClient.removeItem(i.previousIndex());
+               shopShopClient.save();
+               
+               return newSpeechletAskResponseWithReprompt("removeItem.ok", "welcome.reprompt", itemName);
+            }
+         }
+      }
+      catch (ShopShopClientException e)
+      {
+         return newSpeechletAskResponseWithReprompt("dropbox.connect.error", "welcome.reprompt");
+      }
+      
+      return newSpeechletAskResponseWithReprompt("removeItem.notfound", "welcome.reprompt", itemName);
    }
    
    private List<ListItem> getItems(final ShopShopUserData userData, final String listName) throws SpeechletResponseThrowable

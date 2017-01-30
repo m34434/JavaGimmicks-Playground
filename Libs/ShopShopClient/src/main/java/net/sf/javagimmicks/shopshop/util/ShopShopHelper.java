@@ -134,4 +134,13 @@ public class ShopShopHelper
       addItem(shoppingList, item);
       putShoppingList(dropbox, shoppingListName, shoppingList);
    }
+
+   public static void removeItem(NSDictionary shoppingList, int index)
+   {
+      final NSArray itemList = (NSArray) shoppingList.get(PROP_SHOPPING_LIST);
+
+      itemList.remove(index);
+
+      shoppingList.put(PROP_SHOPPING_LIST, itemList);
+   }
 }

@@ -53,3 +53,18 @@ AddItem füge {ItemName} hinzu
 AddItem {ItemName} hinzuzufügen
 AddItem {ItemName} auf die Liste
 AddItem setze {ItemName} auf die Liste
+
+RemoveItem {ItemName} entfernen
+RemoveItem {ItemName} zu entfernen
+RemoveItem {ItemName} löschen
+RemoveItem {ItemName} zu löschen
+RemoveItem lösche {ItemName}
+RemoveItem entferne {ItemName}
+RemoveItem nimm {ItemName} von der Liste
+RemoveItem {ItemName} von der Liste entfernen
+RemoveItem {ItemName} von der Liste zu entfernen
+RemoveItem {ItemName} von der Liste löschen
+RemoveItem {ItemName} von der Liste zu löschen
+RemoveItem lösche {ItemName} von der Liste 
+RemoveItem entferne {ItemName} von der Liste 
+RemoveItem {ItemName} von der Liste zu nehmen

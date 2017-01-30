@@ -46,6 +46,11 @@ public class ShopShopClient
       ShopShopHelper.addItem(shoppingList, item);
    }
    
+   public void removeItem(int itemIndex)
+   {
+      ShopShopHelper.removeItem(shoppingList, itemIndex);
+   }
+   
    public List<ListItem> getItems()
    {
       return ShopShopHelper.getItems(shoppingList);
