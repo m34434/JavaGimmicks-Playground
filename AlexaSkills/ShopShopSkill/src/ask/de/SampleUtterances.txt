@@ -36,19 +36,19 @@ SwitchList auf {ListName} zu wechseln
 SwitchList nach {ListName} wechseln
 SwitchList nach {ListName} zu wechseln
 
-AddAmountItemTyped {Amount} {AmountType} {ItemName}
+AddAmountItemTyped {Amount} {AmountType} {ItemName} dazu
 AddAmountItemTyped füge {Amount} {AmountType} {ItemName} hinzu
 AddAmountItemTyped {Amount} {AmountType} {ItemName} hinzuzufügen
 AddAmountItemTyped {Amount} {AmountType} {ItemName} auf die Liste
 AddAmountItemTyped setze {Amount} {AmountType} {ItemName} auf die Liste
 
-AddAmountItem {Amount} {ItemName}
+AddAmountItem {Amount} {ItemName} dazu
 AddAmountItem füge {Amount} {ItemName} hinzu
 AddAmountItem {Amount} {ItemName} hinzuzufügen
 AddAmountItem {Amount} {ItemName} auf die Liste
 AddAmountItem setze {Amount} {ItemName} auf die Liste
 
-AddItem {ItemName}
+AddItem {ItemName} dazu
 AddItem füge {ItemName} hinzu
 AddItem {ItemName} hinzuzufügen
 AddItem {ItemName} auf die Liste

@@ -1,4 +1,5 @@
 Butter
+Frischkäse
 Käse
 Eier
 Milch
@@ -64,6 +65,7 @@ Waschpulver
 Waschmittel
 Spültabs
 Spülmittel
+Spülreiniger
 Zahnbürste
 Zahncreme
 Deo
@@ -76,3 +78,7 @@ Brei
 Getreidebrei
 Milchbrei
 Obstbrei
+Taschentücher
+Tempoboxen
+Ohrstäbchen
+Q-Tipps
