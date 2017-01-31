@@ -2,17 +2,15 @@ package net.sf.javagimmicks.ask.shopshop;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Locale;
-import java.util.Map;
 
 import com.amazon.speech.slu.Intent;
 import com.amazon.speech.speechlet.IntentRequest;
 import com.amazon.speech.speechlet.LaunchRequest;
-import com.amazon.speech.speechlet.Session;
-import com.amazon.speech.speechlet.SessionEndedRequest;
 import com.amazon.speech.speechlet.SpeechletException;
 import com.amazon.speech.speechlet.SpeechletResponse;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
@@ -47,15 +45,11 @@ public class ShopShopSpeechlet extends AbstractSpeechlet
    private AmountTypes amountTypes;
 
    @Override
-   public void onSessionEnded(final SessionEndedRequest request, final Session session)
-         throws SpeechletException
+   protected Collection<String> getSupportedApplicationIds()
    {
-      log.debug("onSessionEnded requestId={}, sessionId={}", request.getRequestId(),
-            session.getSessionId());
-
-      // any cleanup logic goes here
+      return Arrays.asList("amzn1.ask.skill.d41c0b3f-7486-4d95-81d2-96f207302ff8");
    }
-   
+
    protected SpeechletResponse onLaunchInternal(LaunchRequest request) throws SpeechletResponseThrowable
    {
       final ShopShopUserData userData = getUserData();
@@ -224,41 +218,21 @@ public class ShopShopSpeechlet extends AbstractSpeechlet
 
    private ShopShopUserData getUserData()
    {
-      final Object userDataRaw = getSession().getAttribute(ATTR_USER_DATA);
-      
-      // Subsequent calls within this Lambda instance
-      if(userDataRaw instanceof ShopShopUserData)
-      {
-         return (ShopShopUserData) userDataRaw;
-      }
-      
-      // Subsequent call to onIntent() after a previous onLaunch() request
-      if(userDataRaw instanceof Map)
-      {
-         @SuppressWarnings("unchecked")
-         final Map<String, Object> userDataMap = (Map<String, Object>)userDataRaw;
-      
-         // TODO: try to make this better using commons-beanutils or stuff like this (maybe there's sth. from Amazon API)
-         final ShopShopUserData userData = new ShopShopUserData();
-         userData.setCustomerId((String) userDataMap.get("customerId"));
-         userData.setDropboxAccessToken((String) userDataMap.get("dropboxAccessToken"));
-         userData.setListName((String) userDataMap.get("listName"));
-         
-         getSession().setAttribute(ATTR_USER_DATA, userData);
-         
-         return userData;
-      }
-      
-      log.info("Loading user data from DynamoDB");
-      final String userId = getSession().getUser().getUserId();
-      ShopShopUserData userData = ShopShopDao.load(getDb(), userId);
+      ShopShopUserData userData = ShopShopUserData.fromSessionAttribute(getSession().getAttribute(ATTR_USER_DATA));
 
-      if (userData == null)
+      if(userData == null)
       {
-         userData = new ShopShopUserData();
-         userData.setCustomerId(userId);
+          log.info("Loading user data from DynamoDB");
+          final String userId = getSession().getUser().getUserId();
+          userData = ShopShopDao.load(getDb(), userId);
 
-         ShopShopDao.save(getDb(), userData);
+          if (userData == null)
+          {
+             userData = new ShopShopUserData();
+             userData.setCustomerId(userId);
+
+             ShopShopDao.save(getDb(), userData);
+          }
       }
       
       getSession().setAttribute(ATTR_USER_DATA, userData);

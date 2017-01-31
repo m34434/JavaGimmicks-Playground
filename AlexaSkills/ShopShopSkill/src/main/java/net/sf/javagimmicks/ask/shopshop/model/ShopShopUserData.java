@@ -1,5 +1,7 @@
 package net.sf.javagimmicks.ask.shopshop.model;
 
+import java.util.Map;
+
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBAttribute;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBHashKey;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBTable;
@@ -64,5 +66,36 @@ public class ShopShopUserData
    public void setListName(String listName)
    {
       this.listName = listName;
+   }
+   
+   public static ShopShopUserData fromSessionAttribute(Object value)
+   {
+      if(value == null)
+      {
+         return null;
+      }
+
+      // Subsequent calls within this Lambda instance
+      if(value instanceof ShopShopUserData)
+      {
+         return (ShopShopUserData) value;
+      }
+      
+      // Subsequent call to onIntent() after a previous onLaunch() request
+      if(value instanceof Map)
+      {
+         @SuppressWarnings("unchecked")
+         final Map<String, Object> userDataMap = (Map<String, Object>)value;
+      
+         // TODO: try to make this better using commons-beanutils or stuff like this (maybe there's sth. from Amazon API)
+        final ShopShopUserData userData = new ShopShopUserData();
+         userData.setCustomerId((String) userDataMap.get("customerId"));
+         userData.setDropboxAccessToken((String) userDataMap.get("dropboxAccessToken"));
+         userData.setListName((String) userDataMap.get("listName"));
+         
+         return userData;
+      }
+      
+      throw new IllegalArgumentException("Could not parse from session attribute!");
    }
 }
