@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Locale;
+import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
@@ -37,39 +38,50 @@ import net.sf.javagimmicks.shopshop.util.ShopShopHelper;
 
 public class ShopShopSpeechlet implements Speechlet
 {
-   private static final Logger log = LoggerFactory.getLogger(ShopShopSpeechlet.class);
-   
+   private static final String MSG_WELCOME = "welcome";
+   private static final String MSG_WELCOME_REPROMPT = "welcome.reprompt";
+   private static final String MSG_GET_ALL = "getAll";
+   private static final String MSG_GET_LIST_NAME_RESULT = "getListName.result";
+   private static final String MSG_SWITCH_UNKNOWN_LIST = "switch.unknownList";
+   private static final String MSG_SWITCH_UNKNOWN_LIST_SLOT = "switch.unknownList.slot";
+   private static final String MSG_SWITCH_DONE = "switch.done";
+   private static final String MSG_GOODBYE = "goodbye";
+   private static final String MSG_DROPBOX_NOTOKEN = "dropbox.notoken";
    private static final String MSG_FATAL_ERROR = "fatalError";
 
+   private static final Logger log = LoggerFactory.getLogger(ShopShopSpeechlet.class);
+   
    private static final String BUNDLE_NAME = "messages";
-
-   private ResourceBundle bundle;
-   private AmountTypes amountTypes;
-
-   private AmazonDynamoDB db;
+   private static final String ATTR_USER_DATA = "___userData___";
+   private static final String ATTR_LAUNCH_MODE = "___launchMode___";
 
    private Session session;
 
+   private ResourceBundle bundle;
+   private AmazonDynamoDB db;
+
+   private AmountTypes amountTypes;
+   
    @Override
    public void onSessionStarted(final SessionStartedRequest request, final Session session)
          throws SpeechletException
    {
-      onRequest(request, session);
-   
-      log.info("onSessionStarted requestId={}, sessionId={}", request.getRequestId(),
+      log.debug("onSessionStarted requestId={}, sessionId={}", request.getRequestId(),
             session.getSessionId());
-   
+
+      init(request, session);
+      this.session.setAttribute(ATTR_LAUNCH_MODE, false);
    }
 
    @Override
    public SpeechletResponse onLaunch(final LaunchRequest request, final Session session)
          throws SpeechletException
    {
-      onRequest(request, session);
-   
-      log.info("onLaunch requestId={}, sessionId={}", request.getRequestId(),
+      log.debug("onLaunch requestId={}, sessionId={}", request.getRequestId(),
             session.getSessionId());
    
+      this.session.setAttribute(ATTR_LAUNCH_MODE, true);
+      
       try
       {
          return onLaunchInternal(request);
@@ -83,9 +95,9 @@ public class ShopShopSpeechlet implements Speechlet
    @Override
    public SpeechletResponse onIntent(IntentRequest request, Session session) throws SpeechletException
    {
-      onRequest(request, session);
-
-      log.info("onIntent requestId={}, sessionId={}", request.getRequestId(), session.getSessionId());
+      log.debug("onIntent requestId={}, sessionId={}", request.getRequestId(), session.getSessionId());
+      
+      init(request, session);
       
       try
       {
@@ -101,9 +113,7 @@ public class ShopShopSpeechlet implements Speechlet
    public void onSessionEnded(final SessionEndedRequest request, final Session session)
          throws SpeechletException
    {
-      onRequest(request, session);
-
-      log.info("onSessionEnded requestId={}, sessionId={}", request.getRequestId(),
+      log.debug("onSessionEnded requestId={}, sessionId={}", request.getRequestId(),
             session.getSessionId());
 
       // any cleanup logic goes here
@@ -114,19 +124,14 @@ public class ShopShopSpeechlet implements Speechlet
       final ShopShopUserData userData = getUserData();
       if (userData.getDropboxAccessToken() == null)
       {
-         return newSpeechletTellResponse("dropbox.notoken");
+         return newSpeechletTellResponse(MSG_DROPBOX_NOTOKEN);
       }
    
-      return newSpeechletAskResponseWithReprompt("welcome", "welcome.reprompt");
+      return newSpeechletAskResponseWithReprompt(MSG_WELCOME, MSG_WELCOME_REPROMPT);
    }
 
    protected SpeechletResponse onIntentInternal(IntentRequest request) throws SpeechletResponseThrowable, SpeechletException
    {
-      onRequest(request, session);
-   
-      log.info("onIntent requestId={}, sessionId={}", request.getRequestId(),
-            session.getSessionId());
-   
       final Intent intent = request.getIntent();
       final String intentName = intent.getName();
       
@@ -135,7 +140,7 @@ public class ShopShopSpeechlet implements Speechlet
       /////////      
       if("AMAZON.StopIntent".equals(intentName) || "AMAZON.CancelIntent".equals(intentName))
       {
-         return newSpeechletTellResponse("goodbye");
+         return newSpeechletTellResponse(MSG_GOODBYE);
       }
       
       final IntentType intentType = IntentType.valueOf(intentName);
@@ -148,13 +153,13 @@ public class ShopShopSpeechlet implements Speechlet
       if(intentType == IntentType.GetCurrentListName)
       {
          final String listName = getSelectedListName(userData);
-         return newSpeechletAskResponseWithReprompt("getListName.result", "welcome.reprompt", listName);
+         return newSpeechletAskResponseWithReprompt(MSG_GET_LIST_NAME_RESULT, MSG_WELCOME_REPROMPT, listName);
       }
 
       // From here on, we will need also Dropbox access
       if (userData.getDropboxAccessToken() == null)
       {
-         return newSpeechletTellResponse("dropbox.notoken");
+         return newSpeechletTellResponse(MSG_DROPBOX_NOTOKEN);
       }
       
       //////////
@@ -164,7 +169,7 @@ public class ShopShopSpeechlet implements Speechlet
       {
          final List<String> avaiblableLists = getAvailableListNames(userData);
          
-         return newSpeechletAskResponseWithReprompt("getAll", "welcome.reprompt", String.join(", ", avaiblableLists));
+         return newSpeechletAskResponseWithReprompt(MSG_GET_ALL, MSG_WELCOME_REPROMPT, String.join(", ", avaiblableLists));
       }
    
       //////////
@@ -175,7 +180,7 @@ public class ShopShopSpeechlet implements Speechlet
          final String listName = intent.getSlot("ListName").getValue();
          if(listName == null)
          {
-            return newSpeechletAskResponseWithReprompt("switch.unknownList.slot", "welcome.reprompt");
+            return newSpeechletAskResponseWithReprompt(MSG_SWITCH_UNKNOWN_LIST_SLOT, MSG_WELCOME_REPROMPT);
          }
          
          final List<String> avaiblableLists = getAvailableListNames(userData);
@@ -183,13 +188,13 @@ public class ShopShopSpeechlet implements Speechlet
          final String realListName = findList(avaiblableLists, listName);
          if(realListName == null)
          {
-            return newSpeechletAskResponse("switch.unknownList", listName, String.join(", ", avaiblableLists));
+            return newSpeechletAskResponse(MSG_SWITCH_UNKNOWN_LIST, listName, String.join(", ", avaiblableLists));
          }
          
          userData.setListName(realListName);
          ShopShopDao.save(getDb(), userData);
    
-         return newSpeechletAskResponseWithReprompt("switch.done", "welcome.reprompt", listName);
+         return newSpeechletAskResponseWithReprompt(MSG_SWITCH_DONE, MSG_WELCOME_REPROMPT, listName);
       }
       
       //////////
@@ -207,7 +212,7 @@ public class ShopShopSpeechlet implements Speechlet
             listItemStrings.add(getListItemSpokenText(i));
          }
          
-         return newSpeechletAskResponseWithReprompt("readList", "welcome.reprompt", listName, String.join(", ", listItemStrings));
+         return newSpeechletAskResponseWithReprompt("readList", MSG_WELCOME_REPROMPT, listName, String.join(", ", listItemStrings));
       }
       
       //////////
@@ -277,7 +282,7 @@ public class ShopShopSpeechlet implements Speechlet
          return removeItem(userData, listName, itemName);
       }
 
-      return newSpeechletAskResponseWithReprompt("unknownIntent", "welcome.reprompt");
+      return newSpeechletAskResponseWithReprompt("unknownIntent", MSG_WELCOME_REPROMPT);
    }
 
    protected String getMessage(String key) throws SpeechletResponseThrowable
@@ -309,14 +314,16 @@ public class ShopShopSpeechlet implements Speechlet
       final PlainTextOutputSpeech speech = new PlainTextOutputSpeech();
       speech.setText(String.format(getMessage(messageKey), args));
    
+      if(!(Boolean)session.getAttribute(ATTR_LAUNCH_MODE))
+      {
+         return SpeechletResponse.newTellResponse(speech);
+      }
+      
       final PlainTextOutputSpeech speechReprompt = new PlainTextOutputSpeech();
       speechReprompt.setText(String.format(getMessage(repromptMessageKey), args));
    
       final Reprompt reprompt = new Reprompt();
       reprompt.setOutputSpeech(speechReprompt);
-   
-      final SpeechletResponse result = new SpeechletResponse();
-      result.setOutputSpeech(speech);
    
       return SpeechletResponse.newAskResponse(speech, reprompt);
    }
@@ -326,16 +333,45 @@ public class ShopShopSpeechlet implements Speechlet
       return newSpeechletAskResponseWithReprompt(messageKey, messageKey, args);
    }
 
-   private void onRequest(SpeechletRequest request, Session session)
+   private void init(final SpeechletRequest request, final Session session)
    {
       this.session = session;
-
+   
       final String language = request.getLocale().getLanguage();
-      bundle = ResourceBundle.getBundle(BUNDLE_NAME, Locale.forLanguageTag(language));
+      if(bundle == null || !bundle.getLocale().getLanguage().equals(language))
+      {
+         this.bundle = ResourceBundle.getBundle(BUNDLE_NAME, Locale.forLanguageTag(language));
+      }
    }
 
    private ShopShopUserData getUserData()
    {
+      final Object userDataRaw = this.session.getAttribute(ATTR_USER_DATA);
+      
+      // Subsequent calls within this Lambda instance
+      if(userDataRaw instanceof ShopShopUserData)
+      {
+         return (ShopShopUserData) userDataRaw;
+      }
+      
+      // Subsequent call to onIntent() after a previous onLaunch() request
+      if(userDataRaw instanceof Map)
+      {
+         @SuppressWarnings("unchecked")
+         final Map<String, Object> userDataMap = (Map<String, Object>)userDataRaw;
+      
+         // TODO: try to make this better using commons-beanutils or stuff like this (maybe there's sth. from Amazon API)
+         final ShopShopUserData userData = new ShopShopUserData();
+         userData.setCustomerId((String) userDataMap.get("customerId"));
+         userData.setDropboxAccessToken((String) userDataMap.get("dropboxAccessToken"));
+         userData.setListName((String) userDataMap.get("listName"));
+         
+         this.session.setAttribute(ATTR_USER_DATA, userData);
+         
+         return userData;
+      }
+      
+      log.info("Loading user data from DynamoDB");
       ShopShopUserData userData = ShopShopDao.load(getDb(), session.getUser().getUserId());
 
       if (userData == null)
@@ -345,6 +381,8 @@ public class ShopShopSpeechlet implements Speechlet
 
          ShopShopDao.save(getDb(), userData);
       }
+      
+      this.session.setAttribute(ATTR_USER_DATA, userData);
 
       return userData;
    }
@@ -394,7 +432,7 @@ public class ShopShopSpeechlet implements Speechlet
       }
       catch (DbxException e)
       {
-         throw new SpeechletResponseThrowable(newSpeechletAskResponseWithReprompt("dropbox.connect.error", "welcome.reprompt"));
+         throw new SpeechletResponseThrowable(newSpeechletAskResponseWithReprompt("dropbox.connect.error", MSG_WELCOME_REPROMPT));
       }
    }
 
@@ -414,7 +452,7 @@ public class ShopShopSpeechlet implements Speechlet
       final String amount = intent.getSlot("Amount").getValue();
       if(amount == null || amount.length() == 0)
       {
-         throw new SpeechletResponseThrowable(newSpeechletAskResponseWithReprompt("addItem.noamount", "welcome.reprompt"));
+         throw new SpeechletResponseThrowable(newSpeechletAskResponseWithReprompt("addItem.noamount", MSG_WELCOME_REPROMPT));
       }
       
       return amount;
@@ -425,7 +463,7 @@ public class ShopShopSpeechlet implements Speechlet
       String amountType = intent.getSlot("AmountType").getValue();
       if(amountType == null || amountType.length() == 0)
       {
-         throw new SpeechletResponseThrowable(newSpeechletAskResponseWithReprompt("addItem.noamounttype", "welcome.reprompt"));
+         throw new SpeechletResponseThrowable(newSpeechletAskResponseWithReprompt("addItem.noamounttype", MSG_WELCOME_REPROMPT));
       }
       
       return amountType;
@@ -436,7 +474,7 @@ public class ShopShopSpeechlet implements Speechlet
       final String itemName = intent.getSlot("ItemName").getValue();
       if(itemName == null || itemName.length() == 0)
       {
-         throw new SpeechletResponseThrowable(newSpeechletAskResponseWithReprompt("addItem.noitem", "welcome.reprompt"));
+         throw new SpeechletResponseThrowable(newSpeechletAskResponseWithReprompt("addItem.noitem", MSG_WELCOME_REPROMPT));
       }
       
       return itemName;
@@ -473,17 +511,17 @@ public class ShopShopSpeechlet implements Speechlet
       }
       catch (ShopShopClientException e)
       {
-         return newSpeechletAskResponseWithReprompt("dropbox.connect.error", "welcome.reprompt");
+         return newSpeechletAskResponseWithReprompt("dropbox.connect.error", MSG_WELCOME_REPROMPT);
       }
       
-      return newSpeechletAskResponseWithReprompt("addItem.ok", "welcome.reprompt", getListItemSpokenText(listItem));
+      return newSpeechletAskResponseWithReprompt("addItem.ok", MSG_WELCOME_REPROMPT, getListItemSpokenText(listItem));
    }
    
    private SpeechletResponse removeItem(final ShopShopUserData userData, final String listName, final String itemName) throws SpeechletResponseThrowable
    {
       if(itemName == null)
       {
-         return newSpeechletAskResponseWithReprompt("removeItem.noitem", "welcome.reprompt");
+         return newSpeechletAskResponseWithReprompt("removeItem.noitem", MSG_WELCOME_REPROMPT);
       }
       
       try
@@ -498,16 +536,16 @@ public class ShopShopSpeechlet implements Speechlet
                shopShopClient.removeItem(i.previousIndex());
                shopShopClient.save();
                
-               return newSpeechletAskResponseWithReprompt("removeItem.ok", "welcome.reprompt", itemName);
+               return newSpeechletAskResponseWithReprompt("removeItem.ok", MSG_WELCOME_REPROMPT, itemName);
             }
          }
       }
       catch (ShopShopClientException e)
       {
-         return newSpeechletAskResponseWithReprompt("dropbox.connect.error", "welcome.reprompt");
+         return newSpeechletAskResponseWithReprompt("dropbox.connect.error", MSG_WELCOME_REPROMPT);
       }
       
-      return newSpeechletAskResponseWithReprompt("removeItem.notfound", "welcome.reprompt", itemName);
+      return newSpeechletAskResponseWithReprompt("removeItem.notfound", MSG_WELCOME_REPROMPT, itemName);
    }
    
    private List<ListItem> getItems(final ShopShopUserData userData, final String listName) throws SpeechletResponseThrowable
@@ -519,7 +557,7 @@ public class ShopShopSpeechlet implements Speechlet
       }
       catch (ShopShopClientException e)
       {
-         throw new SpeechletResponseThrowable(newSpeechletAskResponseWithReprompt("dropbox.connect.error", "welcome.reprompt"));
+         throw new SpeechletResponseThrowable(newSpeechletAskResponseWithReprompt("dropbox.connect.error", MSG_WELCOME_REPROMPT));
       }
    }
 
