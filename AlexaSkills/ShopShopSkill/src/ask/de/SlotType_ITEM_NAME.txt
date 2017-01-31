@@ -1,15 +1,34 @@
 Butter
 Frischkäse
 Käse
+Almkäse
 Eier
 Milch
 Zucker
 Salz
-Mehr
+Mehl
+Dinkelmehl
+Vollkornmehl
+Maismehl
+Nudeln
+Gefüllte Nudeln
+Cracker
+Erdnüsse
+Cashew Nüsse
+Macadamia
+Nuss-Mix
+Chips
+Nachos
+Ketchup
+Nudelsauce
+Senf
+Grillsauce
 Öl
 Olivenöl
 Rapsöl
 Sonnenblumenöl
+Essig
+Essig Essenz
 Metzger
 Wurst
 Schinken
@@ -29,6 +48,7 @@ Rinderfilet
 Müsli
 Orangensaft
 Traubensaft
+Mehrfruchtsaft
 Wasser
 Kaffee
 Kaffeepulver
@@ -52,12 +72,19 @@ Tomate
 Tomaten
 Gurke
 Gurken
+Salat
+Avocado
 Brot
 Knäckebrot
 Wraps
 Toast
 Semmeln
 Brezen
+Milchbrötchen
+Rosinensemmeln
+Baguette
+Ciabatta
+Weißbrot
 Feuchtücher
 Toilettenpapier
 Küchenrolle
@@ -70,6 +97,7 @@ Zahnbürste
 Zahncreme
 Deo
 Shampoo
+Seife
 Windeln
 Slipeinlagen
 Gläschen
@@ -82,3 +110,4 @@ Taschentücher
 Tempoboxen
 Ohrstäbchen
 Q-Tipps
+WC Tücher
