@@ -2,6 +2,7 @@ package net.sf.javagimmicks.ask.shopshop;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Properties;
 
 import net.sf.javagimmicks.collections.bidimap.BidiMap;
@@ -9,22 +10,22 @@ import net.sf.javagimmicks.collections.bidimap.DualBidiMap;
 
 public class AmountTypes
 {
-   private final String language;
+   private final Locale locale;
    private final BidiMap<String, String> m = new DualBidiMap<String, String>(new HashMap<>(), new HashMap<>());
    
-   public AmountTypes(String lanuage) throws IOException
+   public AmountTypes(Locale locale) throws IOException
    {
-      this.language = lanuage;
+      this.locale = locale;
       
       final Properties p = new Properties();
-      p.load(getClass().getClassLoader().getResourceAsStream("amountTypes_" + lanuage + ".properties"));
+      p.load(getClass().getClassLoader().getResourceAsStream("amountTypes_" + locale.toLanguageTag() + ".properties"));
       
       p.forEach((k, v) -> m.put(k.toString(), v.toString()));
    }
 
-   public String getLanguage()
+   public Locale getLocale()
    {
-      return language;
+      return locale;
    }
    
    public String getAbbreviation(String spokenType)

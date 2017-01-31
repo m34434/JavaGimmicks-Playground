@@ -7,28 +7,20 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Locale;
 import java.util.Map;
-import java.util.MissingResourceException;
-import java.util.ResourceBundle;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.amazon.speech.slu.Intent;
 import com.amazon.speech.speechlet.IntentRequest;
 import com.amazon.speech.speechlet.LaunchRequest;
 import com.amazon.speech.speechlet.Session;
 import com.amazon.speech.speechlet.SessionEndedRequest;
-import com.amazon.speech.speechlet.SessionStartedRequest;
-import com.amazon.speech.speechlet.Speechlet;
 import com.amazon.speech.speechlet.SpeechletException;
-import com.amazon.speech.speechlet.SpeechletRequest;
 import com.amazon.speech.speechlet.SpeechletResponse;
-import com.amazon.speech.ui.PlainTextOutputSpeech;
-import com.amazon.speech.ui.Reprompt;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.dropbox.core.DbxException;
 
+import net.sf.javagimmicks.ask.base.AbstractSpeechlet;
+import net.sf.javagimmicks.ask.base.SpeechletResponseThrowable;
 import net.sf.javagimmicks.ask.shopshop.model.ShopShopDao;
 import net.sf.javagimmicks.ask.shopshop.model.ShopShopUserData;
 import net.sf.javagimmicks.shopshop.ListItem;
@@ -36,7 +28,7 @@ import net.sf.javagimmicks.shopshop.ShopShopClient;
 import net.sf.javagimmicks.shopshop.ShopShopClientException;
 import net.sf.javagimmicks.shopshop.util.ShopShopHelper;
 
-public class ShopShopSpeechlet implements Speechlet
+public class ShopShopSpeechlet extends AbstractSpeechlet
 {
    private static final String MSG_WELCOME = "welcome";
    private static final String MSG_WELCOME_REPROMPT = "welcome.reprompt";
@@ -47,67 +39,12 @@ public class ShopShopSpeechlet implements Speechlet
    private static final String MSG_SWITCH_DONE = "switch.done";
    private static final String MSG_GOODBYE = "goodbye";
    private static final String MSG_DROPBOX_NOTOKEN = "dropbox.notoken";
-   private static final String MSG_FATAL_ERROR = "fatalError";
 
-   private static final Logger log = LoggerFactory.getLogger(ShopShopSpeechlet.class);
-   
-   private static final String BUNDLE_NAME = "messages";
    private static final String ATTR_USER_DATA = "___userData___";
-   private static final String ATTR_LAUNCH_MODE = "___launchMode___";
 
-   private Session session;
-
-   private ResourceBundle bundle;
    private AmazonDynamoDB db;
 
    private AmountTypes amountTypes;
-   
-   @Override
-   public void onSessionStarted(final SessionStartedRequest request, final Session session)
-         throws SpeechletException
-   {
-      log.debug("onSessionStarted requestId={}, sessionId={}", request.getRequestId(),
-            session.getSessionId());
-
-      init(request, session);
-      this.session.setAttribute(ATTR_LAUNCH_MODE, false);
-   }
-
-   @Override
-   public SpeechletResponse onLaunch(final LaunchRequest request, final Session session)
-         throws SpeechletException
-   {
-      log.debug("onLaunch requestId={}, sessionId={}", request.getRequestId(),
-            session.getSessionId());
-   
-      this.session.setAttribute(ATTR_LAUNCH_MODE, true);
-      
-      try
-      {
-         return onLaunchInternal(request);
-      }
-      catch (SpeechletResponseThrowable e)
-      {
-         return e.getResponse();
-      }
-   }
-   
-   @Override
-   public SpeechletResponse onIntent(IntentRequest request, Session session) throws SpeechletException
-   {
-      log.debug("onIntent requestId={}, sessionId={}", request.getRequestId(), session.getSessionId());
-      
-      init(request, session);
-      
-      try
-      {
-         return onIntentInternal(request);
-      }
-      catch (SpeechletResponseThrowable e)
-      {
-         return e.getResponse();
-      }
-   }
 
    @Override
    public void onSessionEnded(final SessionEndedRequest request, final Session session)
@@ -285,68 +222,9 @@ public class ShopShopSpeechlet implements Speechlet
       return newSpeechletAskResponseWithReprompt("unknownIntent", MSG_WELCOME_REPROMPT);
    }
 
-   protected String getMessage(String key) throws SpeechletResponseThrowable
-   {
-       try
-       {
-           return bundle.getString(key);
-       }
-       catch(MissingResourceException e)
-       {
-           throw new SpeechletResponseThrowable(newSpeechletTellResponse(MSG_FATAL_ERROR));
-       }
-   }
-   
-   protected SpeechletResponse newSpeechletTellResponse(String messageKey, Object... args) throws SpeechletResponseThrowable
-   {
-      final PlainTextOutputSpeech speech = new PlainTextOutputSpeech();
-      speech.setText(String.format(getMessage(messageKey), args));
-   
-      final SpeechletResponse result = new SpeechletResponse();
-      result.setOutputSpeech(speech);
-   
-      return SpeechletResponse.newTellResponse(speech);
-   }
-
-   protected SpeechletResponse newSpeechletAskResponseWithReprompt(String messageKey, String repromptMessageKey,
-         Object... args) throws SpeechletResponseThrowable
-   {
-      final PlainTextOutputSpeech speech = new PlainTextOutputSpeech();
-      speech.setText(String.format(getMessage(messageKey), args));
-   
-      if(!(Boolean)session.getAttribute(ATTR_LAUNCH_MODE))
-      {
-         return SpeechletResponse.newTellResponse(speech);
-      }
-      
-      final PlainTextOutputSpeech speechReprompt = new PlainTextOutputSpeech();
-      speechReprompt.setText(String.format(getMessage(repromptMessageKey), args));
-   
-      final Reprompt reprompt = new Reprompt();
-      reprompt.setOutputSpeech(speechReprompt);
-   
-      return SpeechletResponse.newAskResponse(speech, reprompt);
-   }
-
-   protected SpeechletResponse newSpeechletAskResponse(String messageKey, Object... args) throws SpeechletResponseThrowable
-   {
-      return newSpeechletAskResponseWithReprompt(messageKey, messageKey, args);
-   }
-
-   private void init(final SpeechletRequest request, final Session session)
-   {
-      this.session = session;
-   
-      final String language = request.getLocale().getLanguage();
-      if(bundle == null || !bundle.getLocale().getLanguage().equals(language))
-      {
-         this.bundle = ResourceBundle.getBundle(BUNDLE_NAME, Locale.forLanguageTag(language));
-      }
-   }
-
    private ShopShopUserData getUserData()
    {
-      final Object userDataRaw = this.session.getAttribute(ATTR_USER_DATA);
+      final Object userDataRaw = getSession().getAttribute(ATTR_USER_DATA);
       
       // Subsequent calls within this Lambda instance
       if(userDataRaw instanceof ShopShopUserData)
@@ -366,23 +244,24 @@ public class ShopShopSpeechlet implements Speechlet
          userData.setDropboxAccessToken((String) userDataMap.get("dropboxAccessToken"));
          userData.setListName((String) userDataMap.get("listName"));
          
-         this.session.setAttribute(ATTR_USER_DATA, userData);
+         getSession().setAttribute(ATTR_USER_DATA, userData);
          
          return userData;
       }
       
       log.info("Loading user data from DynamoDB");
-      ShopShopUserData userData = ShopShopDao.load(getDb(), session.getUser().getUserId());
+      final String userId = getSession().getUser().getUserId();
+      ShopShopUserData userData = ShopShopDao.load(getDb(), userId);
 
       if (userData == null)
       {
          userData = new ShopShopUserData();
-         userData.setCustomerId(session.getUser().getUserId());
+         userData.setCustomerId(userId);
 
          ShopShopDao.save(getDb(), userData);
       }
       
-      this.session.setAttribute(ATTR_USER_DATA, userData);
+      getSession().setAttribute(ATTR_USER_DATA, userData);
 
       return userData;
    }
@@ -401,13 +280,13 @@ public class ShopShopSpeechlet implements Speechlet
    
    private AmountTypes getAmountTypes() throws SpeechletResponseThrowable
    {
-      final String language = bundle.getLocale().getLanguage();
+      final Locale locale = getLocale();
       
-      if(amountTypes == null || !language.equals(amountTypes.getLanguage()))
+      if(amountTypes == null || !locale.equals(amountTypes.getLocale()))
       {
          try
          {
-            amountTypes = new AmountTypes(language);
+            amountTypes = new AmountTypes(locale);
          }
          catch (IOException e)
          {

@@ -2,6 +2,7 @@ package net.sf.javagimmicks.shopshop;
 
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.dropbox.core.DbxApiException;
@@ -9,13 +10,14 @@ import com.dropbox.core.DbxException;
 
 import net.sf.javagimmicks.shopshop.util.ShopShopHelper;
 
+@Ignore
 public class ShopShopClientTest
 {
    // Get your app key and secret from the Dropbox developers website.
 //   private static final String APP_KEY = "3907t43g1r9b9nv";
 //   private static final String APP_SECRET = "6c62wub4p6ogoa1";
    
-   private static final String ACCESS_TOKEN = "qXJwL9Tmtg0AAAAAAAACS8UmKU93lEUs5_GxjgRkKK0RFeJ0CNzra1a7g3jD660L";
+   private static final String ACCESS_TOKEN = "";
 
    private ShopShopClient shopShopClient;
    

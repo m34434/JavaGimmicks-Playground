@@ -1,4 +1,4 @@
-package net.sf.javagimmicks.ask.shopshop;
+package net.sf.javagimmicks.ask.base;
 
 import com.amazon.speech.speechlet.SpeechletResponse;
 
