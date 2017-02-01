@@ -1,15 +1,12 @@
 package net.sf.javagimmicks.ask.base;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.Locale;
+import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 import java.util.Set;
 
+import org.apache.commons.beanutils.BeanMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,10 +23,8 @@ import com.amazon.speech.speechlet.SpeechletV2;
 import com.amazon.speech.speechlet.lambda.SpeechletRequestStreamHandler;
 import com.amazon.speech.ui.PlainTextOutputSpeech;
 import com.amazon.speech.ui.Reprompt;
-import com.amazonaws.services.lambda.runtime.Context;
-import com.amazonaws.services.lambda.runtime.RequestStreamHandler;
 
-public abstract class AbstractSpeechlet implements RequestStreamHandler {
+public abstract class AbstractSpeechlet implements Speechlet {
 
 	protected static final String MSG_FATAL_ERROR = "fatalError";
 
@@ -41,28 +36,56 @@ public abstract class AbstractSpeechlet implements RequestStreamHandler {
 	private Session session;
 	private ResourceBundle bundle;
 
-	private final InternalSpeechletRequestStreamHandler delegate;
-	
-	protected AbstractSpeechlet() {
-		final InternalSpeechlet s = new InternalSpeechlet();
-		
-		this.delegate = new InternalSpeechletRequestStreamHandler(s, new HashSet<>(getSupportedApplicationIds()));
-	}
-	
 	abstract protected SpeechletResponse onLaunchInternal(LaunchRequest request)
 			throws SpeechletResponseThrowable, SpeechletException;
 
 	abstract protected SpeechletResponse onIntentInternal(IntentRequest request)
 			throws SpeechletResponseThrowable, SpeechletException;
 
-	abstract protected Collection<String> getSupportedApplicationIds();
-	
-	@Override
-	public void handleRequest(InputStream input, OutputStream output, Context context) throws IOException {
-		delegate.handleRequest(input, output, context);
-	}
+   @Override
+   public void onSessionStarted(final SessionStartedRequest request, final Session session)
+         throws SpeechletException {
+      log.debug("onSessionStarted requestId={}, sessionId={}", request.getRequestId(), session.getSessionId());
 
-	protected void onSessionEndedInternal(SessionEndedRequest request) {
+      init(request, session);
+      session.setAttribute(ATTR_LAUNCH_MODE, false);
+   }
+
+   @Override
+   public SpeechletResponse onLaunch(final LaunchRequest request, final Session session)
+         throws SpeechletException {
+      log.debug("onLaunch requestId={}, sessionId={}", request.getRequestId(), session.getSessionId());
+
+      session.setAttribute(ATTR_LAUNCH_MODE, true);
+
+      try {
+         return onLaunchInternal(request);
+      } catch (SpeechletResponseThrowable e) {
+         return e.getResponse();
+      }
+   }
+
+   @Override
+   public SpeechletResponse onIntent(IntentRequest request, Session session) throws SpeechletException {
+      log.debug("onIntent requestId={}, sessionId={}", request.getRequestId(), session.getSessionId());
+
+      init(request, session);
+
+      try {
+         return onIntentInternal(request);
+      } catch (SpeechletResponseThrowable e) {
+         return e.getResponse();
+      }
+   }
+
+   @Override
+   public void onSessionEnded(final SessionEndedRequest request, final Session session) throws SpeechletException {
+      log.debug("onSessionEnded requestId={}, sessionId={}", request.getRequestId(), session.getSessionId());
+
+      onSessionEndedInternal(request);
+   }
+
+   protected void onSessionEndedInternal(SessionEndedRequest request) {
 	}
 
 	protected SpeechletResponse newSpeechletTellResponse(String messageKey, Object... args)
@@ -114,6 +137,48 @@ public abstract class AbstractSpeechlet implements RequestStreamHandler {
 			throw new SpeechletResponseThrowable(newSpeechletTellResponse(MSG_FATAL_ERROR));
 		}
 	}
+	
+	protected <T> T parseSessionAttribute(String attributeName, Class<T> attributeClass) throws SpeechletResponseThrowable
+	{
+	   if(attributeClass == null)
+	   {
+	      return null;
+	   }
+	   
+	   final Object attribute = session.getAttribute(attributeName);
+	   if(attribute == null)
+	   {
+	      return null;
+	   }
+	   
+	   if(attributeClass.isInstance(attribute))
+	   {
+	      return attributeClass.cast(attribute);
+	   }
+	   
+	   if(attribute instanceof Map)
+	   {
+	      @SuppressWarnings("unchecked")
+         final Map<String, Object> attributeAsMap = (Map<String, Object>)attribute;
+	      
+	      T result;
+         try
+         {
+            result = attributeClass.newInstance();
+         }
+         catch (InstantiationException | IllegalAccessException e)
+         {
+            log.error("Could not map session attribute into object", e);
+            
+            throw new SpeechletResponseThrowable(newSpeechletTellResponse(MSG_FATAL_ERROR));
+         }
+	      new BeanMap(result).putAll(attributeAsMap);
+	      
+	      return result;
+	   }
+	   
+	   throw new IllegalArgumentException(String.format("Could create a %s instance from Session attribute '%s'!", attributeClass.getName(), attribute));
+	}
 
 	private void init(final SpeechletRequest request, final Session session) {
 		this.session = session;
@@ -121,52 +186,6 @@ public abstract class AbstractSpeechlet implements RequestStreamHandler {
 		final Locale requestLocale = request.getLocale();
 		if (bundle == null || !bundle.getLocale().equals(requestLocale)) {
 			this.bundle = ResourceBundle.getBundle(BUNDLE_NAME, requestLocale);
-		}
-	}
-
-	protected class InternalSpeechlet implements Speechlet {
-		
-		@Override
-		public void onSessionStarted(final SessionStartedRequest request, final Session session)
-				throws SpeechletException {
-			log.debug("onSessionStarted requestId={}, sessionId={}", request.getRequestId(), session.getSessionId());
-
-			init(request, session);
-			session.setAttribute(ATTR_LAUNCH_MODE, false);
-		}
-
-		@Override
-		public SpeechletResponse onLaunch(final LaunchRequest request, final Session session)
-				throws SpeechletException {
-			log.debug("onLaunch requestId={}, sessionId={}", request.getRequestId(), session.getSessionId());
-
-			session.setAttribute(ATTR_LAUNCH_MODE, true);
-
-			try {
-				return onLaunchInternal(request);
-			} catch (SpeechletResponseThrowable e) {
-				return e.getResponse();
-			}
-		}
-
-		@Override
-		public SpeechletResponse onIntent(IntentRequest request, Session session) throws SpeechletException {
-			log.debug("onIntent requestId={}, sessionId={}", request.getRequestId(), session.getSessionId());
-
-			init(request, session);
-
-			try {
-				return onIntentInternal(request);
-			} catch (SpeechletResponseThrowable e) {
-				return e.getResponse();
-			}
-		}
-
-		@Override
-		public void onSessionEnded(final SessionEndedRequest request, final Session session) throws SpeechletException {
-			log.debug("onSessionEnded requestId={}, sessionId={}", request.getRequestId(), session.getSessionId());
-
-			onSessionEndedInternal(request);
 		}
 	}
 

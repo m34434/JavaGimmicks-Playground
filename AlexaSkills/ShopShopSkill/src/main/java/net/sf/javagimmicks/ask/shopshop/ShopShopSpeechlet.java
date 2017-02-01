@@ -2,7 +2,6 @@ package net.sf.javagimmicks.ask.shopshop;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.ListIterator;
@@ -43,12 +42,6 @@ public class ShopShopSpeechlet extends AbstractSpeechlet
    private AmazonDynamoDB db;
 
    private AmountTypes amountTypes;
-
-   @Override
-   protected Collection<String> getSupportedApplicationIds()
-   {
-      return Arrays.asList("amzn1.ask.skill.d41c0b3f-7486-4d95-81d2-96f207302ff8");
-   }
 
    protected SpeechletResponse onLaunchInternal(LaunchRequest request) throws SpeechletResponseThrowable
    {
@@ -216,9 +209,10 @@ public class ShopShopSpeechlet extends AbstractSpeechlet
       return newSpeechletAskResponseWithReprompt("unknownIntent", MSG_WELCOME_REPROMPT);
    }
 
-   private ShopShopUserData getUserData()
+   private ShopShopUserData getUserData() throws SpeechletResponseThrowable
    {
-      ShopShopUserData userData = ShopShopUserData.fromSessionAttribute(getSession().getAttribute(ATTR_USER_DATA));
+      ShopShopUserData userData = parseSessionAttribute(ATTR_USER_DATA, ShopShopUserData.class); 
+            // ShopShopUserData.fromSessionAttribute(getSession().getAttribute(ATTR_USER_DATA));
 
       if(userData == null)
       {
