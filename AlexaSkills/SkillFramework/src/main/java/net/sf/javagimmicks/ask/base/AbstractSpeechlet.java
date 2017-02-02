@@ -4,7 +4,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
-import java.util.Set;
 
 import org.apache.commons.beanutils.BeanMap;
 import org.slf4j.Logger;
@@ -19,8 +18,6 @@ import com.amazon.speech.speechlet.Speechlet;
 import com.amazon.speech.speechlet.SpeechletException;
 import com.amazon.speech.speechlet.SpeechletRequest;
 import com.amazon.speech.speechlet.SpeechletResponse;
-import com.amazon.speech.speechlet.SpeechletV2;
-import com.amazon.speech.speechlet.lambda.SpeechletRequestStreamHandler;
 import com.amazon.speech.ui.PlainTextOutputSpeech;
 import com.amazon.speech.ui.Reprompt;
 
@@ -49,6 +46,8 @@ public abstract class AbstractSpeechlet implements Speechlet {
 
       init(request, session);
       session.setAttribute(ATTR_LAUNCH_MODE, false);
+      
+      onSessionStartedInternal(request);
    }
 
    @Override
@@ -58,11 +57,18 @@ public abstract class AbstractSpeechlet implements Speechlet {
 
       session.setAttribute(ATTR_LAUNCH_MODE, true);
 
+      SpeechletResponse r;
       try {
-         return onLaunchInternal(request);
+         r = onLaunchInternal(request);
       } catch (SpeechletResponseThrowable e) {
-         return e.getResponse();
+         r = e.getResponse();
       }
+      
+      if(r != null && r.getShouldEndSession()) {
+         onSessionEndedInternal(toSessionEndedRequest(request));
+      }
+      
+      return r;
    }
 
    @Override
@@ -71,11 +77,18 @@ public abstract class AbstractSpeechlet implements Speechlet {
 
       init(request, session);
 
+      SpeechletResponse r;
       try {
-         return onIntentInternal(request);
+         r = onIntentInternal(request);
       } catch (SpeechletResponseThrowable e) {
-         return e.getResponse();
+         r = e.getResponse();
       }
+      
+      if(r != null && r.getShouldEndSession()) {
+         onSessionEndedInternal(toSessionEndedRequest(request));
+      }
+      
+      return r;
    }
 
    @Override
@@ -83,6 +96,10 @@ public abstract class AbstractSpeechlet implements Speechlet {
       log.debug("onSessionEnded requestId={}, sessionId={}", request.getRequestId(), session.getSessionId());
 
       onSessionEndedInternal(request);
+   }
+
+   protected void onSessionStartedInternal(final SessionStartedRequest request)
+         throws SpeechletException {
    }
 
    protected void onSessionEndedInternal(SessionEndedRequest request) {
@@ -189,14 +206,8 @@ public abstract class AbstractSpeechlet implements Speechlet {
 		}
 	}
 
-	protected static class InternalSpeechletRequestStreamHandler extends SpeechletRequestStreamHandler
-	{
-		protected InternalSpeechletRequestStreamHandler(Speechlet speechlet, Set<String> supportedApplicationIds) {
-			super(speechlet, supportedApplicationIds);
-		}
-	
-		protected InternalSpeechletRequestStreamHandler(SpeechletV2 speechlet, Set<String> supportedApplicationIds) {
-			super(speechlet, supportedApplicationIds);
-		}
-	}
+	private SessionEndedRequest toSessionEndedRequest(final SpeechletRequest request)
+   {
+      return SessionEndedRequest.builder().withLocale(request.getLocale()).withRequestId(request.getRequestId()).withTimestamp(request.getTimestamp()).build();
+   }
 }
