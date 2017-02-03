@@ -1,0 +1,79 @@
+{
+  "intents": [
+    {
+      "intent": "GetCurrentListName"
+    },
+    {
+      "intent": "GetAllListNames"
+    },
+    {
+      "intent": "ReadList"
+    },
+    {
+      "intent": "SwitchList",
+      "slots": [
+        {
+          "name": "ListName",
+          "type": "SHOPPING_LIST_NAME"
+        }
+      ]
+    },
+    {
+      "intent": "AddItem",
+      "slots": [
+        {
+          "name": "ItemName",
+          "type": "ITEM_NAME"
+        }
+      ]
+    },
+    {
+      "intent": "AddAmountItemTyped",
+      "slots": [
+        {
+          "name": "Amount",
+          "type": "AMAZON.NUMBER"
+        },
+        {
+          "name": "AmountType",
+          "type": "AMOUNT_TYPE"
+        },
+        {
+          "name": "ItemName",
+          "type": "ITEM_NAME"
+        }
+      ]
+    },
+    {
+      "intent": "AddAmountItem",
+      "slots": [
+        {
+          "name": "Amount",
+          "type": "AMAZON.NUMBER"
+        },
+        {
+          "name": "ItemName",
+          "type": "ITEM_NAME"
+        }
+      ]
+    },
+    {
+      "intent": "RemoveItem",
+      "slots": [
+        {
+          "name": "ItemName",
+          "type": "ITEM_NAME"
+        }
+      ]
+    },
+    {
+      "intent": "AMAZON.HelpIntent"
+    },
+    {
+      "intent": "AMAZON.StopIntent"
+    },
+    {
+      "intent": "AMAZON.CancelIntent"
+    }
+  ]
+}

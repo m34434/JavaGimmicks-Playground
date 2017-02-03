@@ -12,6 +12,7 @@ import org.camunda.bpm.engine.TaskService;
 import org.camunda.bpm.engine.impl.persistence.entity.ExecutionEntity;
 import org.camunda.bpm.engine.runtime.Execution;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
+import org.camunda.bpm.engine.runtime.ProcessInstanceWithVariables;
 import org.camunda.bpm.engine.runtime.ProcessInstantiationBuilder;
 import org.camunda.bpm.engine.task.Task;
 
@@ -103,7 +104,7 @@ public class ProcessSnapshot
         }
     }
 
-    public ProcessInstance startProcessInstance(ProcessEngine pe)
+    public ProcessInstanceWithVariables startProcessInstance(ProcessEngine pe)
     {
         final RuntimeService runtimeService = pe.getRuntimeService();
         
@@ -116,7 +117,7 @@ public class ProcessSnapshot
             executionSnapshot.submit(builder);
         }
         
-        final ProcessInstance pi = builder.execute(true, true);
+        final ProcessInstanceWithVariables pi = builder.executeWithVariablesInReturn(true, true);
 
         for(TaskSnapshot taskSnapshot : tasks)
         {
@@ -189,7 +190,7 @@ public class ProcessSnapshot
         return m.writeValueAsString(fromProcessInstance(pe, pi));
     }
     
-    public static ProcessInstance jsonToProcess(ObjectMapper m, ProcessEngine pe, String json) throws JsonParseException, JsonMappingException, IOException
+    public static ProcessInstanceWithVariables jsonToProcess(ObjectMapper m, ProcessEngine pe, String json) throws JsonParseException, JsonMappingException, IOException
     {
         return m.readValue(json, ProcessSnapshot.class).startProcessInstance(pe);
     }
