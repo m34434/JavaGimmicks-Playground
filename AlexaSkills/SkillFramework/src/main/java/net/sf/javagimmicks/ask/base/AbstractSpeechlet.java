@@ -7,6 +7,7 @@ import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
 import org.apache.commons.beanutils.BeanMap;
+import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,11 +28,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public abstract class AbstractSpeechlet implements SpeechletV2
 {
-
    protected static final String MSG_FATAL_ERROR = "fatalError";
 
-   private static final String BUNDLE_NAME = "messages";
+   protected static final String INTENT_CANCEL = "AMAZON.CancelIntent";
+   protected static final String INTENT_STOP = "AMAZON.StopIntent";
+
    private static final String ATTR_LAUNCH_MODE = "___launchMode___";
+
+   private static final String BUNDLE_NAME = "messages";
 
    protected final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -177,7 +181,7 @@ public abstract class AbstractSpeechlet implements SpeechletV2
    {
       return envelope.getContext();
    }
-   
+
    protected Session getSession()
    {
       return envelope.getSession();
@@ -192,7 +196,7 @@ public abstract class AbstractSpeechlet implements SpeechletV2
    {
       return bundle.getLocale();
    }
-   
+
    protected boolean isLaunchMode()
    {
       return (boolean) getSession().getAttribute(ATTR_LAUNCH_MODE);
@@ -215,27 +219,38 @@ public abstract class AbstractSpeechlet implements SpeechletV2
       }
    }
 
-   protected String getSlot(Intent intent, String slotName, String messageKey) throws SpeechletResponseThrowable
-   {
-      final String value = intent.getSlot(slotName).getValue();
-      if (value == null || value.length() == 0)
-      {
-         throw new SpeechletResponseThrowable(newSpeechletAskResponse(messageKey));
-      }
-
-      return value;
-   }
-
-   protected String getSlot(Intent intent, String slotName, String messageKey, String repromptMessageKey)
+   protected String getSlot(Intent intent, String slotName, String messageKeyEmpty, String repromptMessageKey)
          throws SpeechletResponseThrowable
    {
       final String value = intent.getSlot(slotName).getValue();
       if (value == null || value.length() == 0)
       {
-         throw new SpeechletResponseThrowable(newSpeechletAskResponse(messageKey, repromptMessageKey));
+         throw new SpeechletResponseThrowable(newSpeechletAskResponse(messageKeyEmpty, repromptMessageKey));
       }
 
       return value;
+   }
+
+   protected String getSlot(Intent intent, String slotName, String messageKeyEmpty) throws SpeechletResponseThrowable
+   {
+      return getSlot(intent, slotName, messageKeyEmpty, messageKeyEmpty);
+   }
+
+   protected LocalDate getSlotLocalDate(Intent intent, String slotName, String messageKeyEmpty, String messageKeyFormat,
+         String repromptMessageKey) throws SpeechletResponseThrowable
+   {
+      final String dateString = getSlot(intent, slotName, messageKeyEmpty, repromptMessageKey);
+
+      try
+      {
+         return LocalDate.parse(dateString);
+      }
+      catch (Exception ex)
+      {
+         log.warn("Could not parse local date string!", ex);
+         throw new SpeechletResponseThrowable(
+               newSpeechletAskResponseWithReprompt(messageKeyFormat, repromptMessageKey));
+      }
    }
 
    protected <T> void setSessionAttributeAsJson(String attributeName, Object o) throws SpeechletResponseThrowable
