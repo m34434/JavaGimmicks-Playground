@@ -1,0 +1,26 @@
+{
+  "intents": [
+    {
+      "intent": "AMAZON.HelpIntent"
+    },
+    {
+      "intent": "AMAZON.StopIntent"
+    },
+    {
+      "intent": "AMAZON.CancelIntent"
+    },
+    {
+      "intent": "AddEntry",
+      "slots": [
+        {
+          "name": "Date",
+          "type": "SHOPPING_LIST_NAME"
+        },
+        {
+          "name": "Type",
+          "type": "TYPE"
+        }
+      ]
+    }
+  ]
+}

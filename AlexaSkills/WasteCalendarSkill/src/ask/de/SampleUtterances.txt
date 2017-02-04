@@ -1,0 +1,7 @@
+AMAZON.StopIntent Ende
+AMAZON.StopIntent fertig
+
+AddEntry {Type} am {Date}
+AddEntry {Type} kommt am {Date}
+AddEntry füge {Type} am {Date} hinzu
+AddEntry {Type} am {Date} hinzuzufügen

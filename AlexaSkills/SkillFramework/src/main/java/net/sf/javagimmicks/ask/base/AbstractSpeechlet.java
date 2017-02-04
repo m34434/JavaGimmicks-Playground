@@ -1,5 +1,6 @@
 package net.sf.javagimmicks.ask.base;
 
+import java.io.IOException;
 import java.util.Locale;
 import java.util.Map;
 import java.util.MissingResourceException;
@@ -9,6 +10,7 @@ import org.apache.commons.beanutils.BeanMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.amazon.speech.slu.Intent;
 import com.amazon.speech.speechlet.IntentRequest;
 import com.amazon.speech.speechlet.LaunchRequest;
 import com.amazon.speech.speechlet.Session;
@@ -20,6 +22,7 @@ import com.amazon.speech.speechlet.SpeechletRequest;
 import com.amazon.speech.speechlet.SpeechletResponse;
 import com.amazon.speech.ui.PlainTextOutputSpeech;
 import com.amazon.speech.ui.Reprompt;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public abstract class AbstractSpeechlet implements Speechlet {
 
@@ -155,6 +158,52 @@ public abstract class AbstractSpeechlet implements Speechlet {
 		}
 	}
 	
+   protected String getSlot(Intent intent, String slotName, String messageKey) throws SpeechletResponseThrowable
+   {
+      final String value = intent.getSlot(slotName).getValue();
+      if(value == null || value.length() == 0)
+      {
+         throw new SpeechletResponseThrowable(newSpeechletAskResponse(messageKey));
+      }
+      
+      return value;
+   }
+   
+   protected String getSlot(Intent intent, String slotName, String messageKey, String repromptMessageKey) throws SpeechletResponseThrowable
+   {
+      final String value = intent.getSlot(slotName).getValue();
+      if(value == null || value.length() == 0)
+      {
+         throw new SpeechletResponseThrowable(newSpeechletAskResponse(messageKey, repromptMessageKey));
+      }
+      
+      return value;
+   }
+   
+   protected <T> void setSessionAttributeAsJson(String attributeName, Object o) throws SpeechletResponseThrowable
+   {
+      if(o == null)
+      {
+         return;
+      }
+      
+      ObjectMapper m = new ObjectMapper();
+      try
+      {
+         final String jsonString = m.writeValueAsString(o);
+         log.debug("Serializing object into session attribute '{}' as JSON string '{}'", attributeName, jsonString);
+         
+         getSession().setAttribute(attributeName, jsonString);
+      }
+      catch (IOException e)
+      {
+         log.error(String.format("Could not set session attribute '%s' as JSON into object", o), e);
+         
+         throw new SpeechletResponseThrowable(newSpeechletTellResponse(MSG_FATAL_ERROR));
+      }
+      
+   }
+   
 	protected <T> T parseSessionAttribute(String attributeName, Class<T> attributeClass) throws SpeechletResponseThrowable
 	{
 	   if(attributeClass == null)
@@ -167,34 +216,53 @@ public abstract class AbstractSpeechlet implements Speechlet {
 	   {
 	      return null;
 	   }
-	   
-	   if(attributeClass.isInstance(attribute))
+      
+      if(attributeClass.isInstance(attribute))
 	   {
 	      return attributeClass.cast(attribute);
 	   }
 	   
+	   if(attribute instanceof String)
+	   {
+	      log.debug("Trying to convert read session attribute '{}' into an '{}' instance via JSON parsing! Attribute value: '{}'", attributeName, attributeClass, attribute);
+
+	      ObjectMapper m = new ObjectMapper();
+	      try
+         {
+            return m.readValue((String)attribute, attributeClass);
+         }
+         catch (IOException e)
+         {
+            log.error(String.format("Could not map session attribute '%s' as JSON into object!", attribute), e);
+            
+            throw new SpeechletResponseThrowable(newSpeechletTellResponse(MSG_FATAL_ERROR));
+         }
+	   }
+	   
 	   if(attribute instanceof Map)
 	   {
-	      @SuppressWarnings("unchecked")
+         log.debug("Trying to convert read session attribute '%s' into an '%s' instance via BeanUtils Map parsing! Attribute value: '%s'", attributeName, attributeClass, attribute);
+
+         @SuppressWarnings("unchecked")
          final Map<String, Object> attributeAsMap = (Map<String, Object>)attribute;
 	      
 	      T result;
          try
          {
             result = attributeClass.newInstance();
+            new BeanMap(result).putAll(attributeAsMap);
          }
-         catch (InstantiationException | IllegalAccessException e)
+         catch (Exception e)
          {
-            log.error("Could not map session attribute into object", e);
+            log.error(String.format("Could not map session attribute '%s' into object", attributeAsMap), e);
             
             throw new SpeechletResponseThrowable(newSpeechletTellResponse(MSG_FATAL_ERROR));
          }
-	      new BeanMap(result).putAll(attributeAsMap);
 	      
 	      return result;
 	   }
 	   
-	   throw new IllegalArgumentException(String.format("Could create a %s instance from Session attribute '%s'!", attributeClass.getName(), attribute));
+	   throw new IllegalArgumentException(String.format("Could not create a %s instance from Session attribute '%s'! Given attribute type was '%s'!", attributeClass.getName(), attribute, attribute.getClass()));
 	}
 
 	private void init(final SpeechletRequest request, final Session session) {
