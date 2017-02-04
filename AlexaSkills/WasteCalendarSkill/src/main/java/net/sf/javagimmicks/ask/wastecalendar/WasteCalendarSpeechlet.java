@@ -2,7 +2,6 @@ package net.sf.javagimmicks.ask.wastecalendar;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 import org.joda.time.LocalDate;
@@ -11,7 +10,6 @@ import org.joda.time.format.DateTimeFormat;
 import com.amazon.speech.slu.Intent;
 import com.amazon.speech.speechlet.IntentRequest;
 import com.amazon.speech.speechlet.LaunchRequest;
-import com.amazon.speech.speechlet.SpeechletException;
 import com.amazon.speech.speechlet.SpeechletResponse;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
@@ -42,7 +40,7 @@ public class WasteCalendarSpeechlet extends AbstractSpeechlet
       return newSpeechletAskResponseWithReprompt(MSG_WELCOME, MSG_WELCOME_REPROMPT);
    }
 
-   protected SpeechletResponse onIntentInternal(IntentRequest request) throws SpeechletResponseThrowable, SpeechletException
+   protected SpeechletResponse onIntentInternal(IntentRequest request) throws SpeechletResponseThrowable
    {
       final Intent intent = request.getIntent();
       final String intentName = intent.getName();
@@ -133,7 +131,7 @@ public class WasteCalendarSpeechlet extends AbstractSpeechlet
    
    private String toSpokenDate(LocalDate date)
    {
-      return date.toString(DateTimeFormat.fullDate().withLocale(getLocale()));
+      return date.toString(DateTimeFormat.fullDate().withLocale(getRequestLocale()));
    }
 
 }
