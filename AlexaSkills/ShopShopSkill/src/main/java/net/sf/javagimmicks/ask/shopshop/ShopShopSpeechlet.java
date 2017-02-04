@@ -10,7 +10,6 @@ import java.util.Locale;
 import com.amazon.speech.slu.Intent;
 import com.amazon.speech.speechlet.IntentRequest;
 import com.amazon.speech.speechlet.LaunchRequest;
-import com.amazon.speech.speechlet.SpeechletException;
 import com.amazon.speech.speechlet.SpeechletResponse;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
@@ -54,7 +53,7 @@ public class ShopShopSpeechlet extends AbstractSpeechlet
       return newSpeechletAskResponseWithReprompt(MSG_WELCOME, MSG_WELCOME_REPROMPT);
    }
 
-   protected SpeechletResponse onIntentInternal(IntentRequest request) throws SpeechletResponseThrowable, SpeechletException
+   protected SpeechletResponse onIntentInternal(IntentRequest request) throws SpeechletResponseThrowable
    {
       final Intent intent = request.getIntent();
       final String intentName = intent.getName();
@@ -248,7 +247,7 @@ public class ShopShopSpeechlet extends AbstractSpeechlet
    
    private AmountTypes getAmountTypes() throws SpeechletResponseThrowable
    {
-      final Locale locale = getLocale();
+      final Locale locale = getBundleLocale();
       
       if(amountTypes == null || !locale.equals(amountTypes.getLocale()))
       {
