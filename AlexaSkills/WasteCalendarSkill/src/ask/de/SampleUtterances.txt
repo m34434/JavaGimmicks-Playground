@@ -1,7 +1,43 @@
 AMAZON.StopIntent Ende
 AMAZON.StopIntent fertig
 
+AddEntry {Type} {Date}
 AddEntry {Type} am {Date}
+AddEntry am {Date} {Type}
 AddEntry {Type} kommt am {Date}
+AddEntry am {Date} kommt {Type}
 AddEntry füge {Type} am {Date} hinzu
+AddEntry füge am {Date} {Type} hinzu
 AddEntry {Type} am {Date} hinzuzufügen
+AddEntry am {Date} {Type} hinzuzufügen
+
+RemoveDateEntry entferne {Type} vom {Date}
+RemoveDateEntry entferne {Type} am {Date}
+RemoveDateEntry {Type} vom {Date} entfernen
+RemoveDateEntry {Type} am {Date} entfernen
+RemoveDateEntry {Type} vom {Date} zu entfernen
+RemoveDateEntry {Type} am {Date} zu entfernen
+RemoveDateEntry entferne den Eintrag {Type} vom {Date}
+RemoveDateEntry entferne den Eintrag {Type} am {Date}
+RemoveDateEntry den Eintrag {Type} vom {Date} entfernen
+RemoveDateEntry den Eintrag {Type} am {Date} entfernen
+RemoveDateEntry den Eintrag {Type} vom {Date} zu entfernen
+RemoveDateEntry den Eintrag {Type} am {Date} zu entfernen
+RemoveDateEntry entferne vom {Date} {Type}
+RemoveDateEntry entferne am {Date} {Type}
+RemoveDateEntry entferne vom {Date} den Eintrag {Type}
+RemoveDateEntry entferne am {Date} den Eintrag {Type}
+
+GetDateEntries Einträge vom {Date}
+GetDateEntries was ist am {Date}
+GetDateEntries was wird am {Date} geholt
+GetDateEntries was am {Date} ist
+GetDateEntries was am {Date} geholt wird
+GetDateEntries lies Einträge vom {Date}
+GetDateEntries Einträge vom {Date} lesen
+GetDateEntries Einträge vom {Date} zu lesen
+GetDateEntries zeige Einträge vom {Date}
+GetDateEntries Einträge vom {Date} zeigen
+GetDateEntries Einträge vom {Date} zu zeigen
+GetDateEntries nach den Einträgen vom {Date}
+GetDateEntries welche Einträge es am {Date} gibt

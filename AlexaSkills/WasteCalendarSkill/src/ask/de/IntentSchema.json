@@ -14,11 +14,33 @@
       "slots": [
         {
           "name": "Date",
-          "type": "SHOPPING_LIST_NAME"
+          "type": "AMAZON.DATE"
         },
         {
           "name": "Type",
           "type": "TYPE"
+        }
+      ]
+    },
+    {
+      "intent": "RemoveDateEntry",
+      "slots": [
+        {
+          "name": "Date",
+          "type": "AMAZON.DATE"
+        },
+        {
+          "name": "Type",
+          "type": "TYPE"
+        }
+      ]
+    },
+    {
+      "intent": "GetDateEntries",
+      "slots": [
+        {
+          "name": "Date",
+          "type": "AMAZON.DATE"
         }
       ]
     }

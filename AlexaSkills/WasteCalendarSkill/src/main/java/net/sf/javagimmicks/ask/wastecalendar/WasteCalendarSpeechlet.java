@@ -28,9 +28,19 @@ public class WasteCalendarSpeechlet extends AbstractSpeechlet
    private static final String MSG_SLOT_DATE_FORMAT = "slot.date.format";
    private static final String MSG_SLOT_TYPE_EMPTY = "slot.type.empty";
    private static final String MSG_INTENT_ADD_ENTRY_OK = "intent.addEntry.ok";
+   private static final String MSG_INTENT_ADD_ENTRY_DUPLICATE = "intent.addEntry.duplicate";
+   private static final String MSG_INTENT_GET_DATE_ENTRIES_NONE = "intent.getDateEntries.none";
+   private static final String MSG_INTENT_GET_DATE_ENTRIES_RESULT = "intent.getDateEntries.result";
+   private static final String MSG_INTENT_REMOVE_DATE_ENTRY_NOT_FOUND = "intent.removeDateEntry.notFound";
+   private static final String MSG_INTENT_REMOVE_DATE_ENTRY_SUCCESS = "intent.removeDateEntry.success";
+
+   private static final String INTENT_ADD_ENTRY = "AddEntry";
+   private static final String INTENT_GET_DATE_ENTRIES = "GetDateEntries";
+   private static final String INTENT_REMOVE_DATE_ENTRY = "RemoveDateEntry";
 
    private static final String SLOT_DATE = "Date";
    private static final String SLOT_TYPE = "Type";
+   
    private static final String ATTR_DATA = "___data___";
 
    private AmazonDynamoDB db;
@@ -45,23 +55,23 @@ public class WasteCalendarSpeechlet extends AbstractSpeechlet
       final Intent intent = request.getIntent();
       final String intentName = intent.getName();
       
-      //////////
-      // Canceling and stopping
-      /////////      
-      if("AMAZON.StopIntent".equals(intentName) || "AMAZON.CancelIntent".equals(intentName))
+      ////////////////////////////
+      // Canceling and stopping //
+      ////////////////////////////
+      if(INTENT_STOP.equals(intentName) || INTENT_CANCEL.equals(intentName))
       {
          return newSpeechletTellResponse(MSG_GOODBYE);
       }
       
       final CalendarData calendarData = getCalendarData();
    
-      //////////
-      // Get the current list name
-      /////////      
-      if("AddEntry".equals(intentName))
+      /////////////////////
+      // Add a new entry //
+      /////////////////////
+      if(INTENT_ADD_ENTRY.equals(intentName))
       {
          final LocalDate date = getDate(intent);
-         final String type = getSlot(intent, SLOT_TYPE, MSG_SLOT_TYPE_EMPTY, MSG_WELCOME_REPROMPT);
+         final String type = getSlot(intent, SLOT_TYPE, MSG_SLOT_TYPE_EMPTY, MSG_WELCOME_REPROMPT).toLowerCase();
          
          final Map<String, List<String>> calendarEntriesForDate = calendarData.getData().getEntries();
          List<String> typeList = calendarEntriesForDate.get(date.toString());
@@ -71,12 +81,60 @@ public class WasteCalendarSpeechlet extends AbstractSpeechlet
             calendarEntriesForDate.put(date.toString(), typeList);
          }
          
+         if(typeList.contains(type))
+         {
+            return newSpeechletAskResponseWithReprompt(MSG_INTENT_ADD_ENTRY_DUPLICATE, MSG_WELCOME_REPROMPT, toSpokenDate(date), type);
+         }
+         
          typeList.add(type);
          
          setSessionAttributeAsJson(ATTR_DATA, calendarData);
          WasteCalendarDao.save(getDb(), calendarData);
          
          return newSpeechletAskResponseWithReprompt(MSG_INTENT_ADD_ENTRY_OK, MSG_WELCOME_REPROMPT, toSpokenDate(date), type);
+      }
+
+      /////////////////////////////////////////
+      // Remove an entry from a certain date //
+      /////////////////////////////////////////
+      if(INTENT_REMOVE_DATE_ENTRY.equals(intentName))
+      {
+         final LocalDate date = getDate(intent);
+         final String type = getSlot(intent, SLOT_TYPE, MSG_SLOT_TYPE_EMPTY, MSG_WELCOME_REPROMPT).toLowerCase();
+         
+         final Map<String, List<String>> calendarEntriesForDate = calendarData.getData().getEntries();
+         List<String> typeList = calendarEntriesForDate.get(date.toString());
+         if(typeList == null || !typeList.remove(type))
+         {
+            return newSpeechletAskResponseWithReprompt(MSG_INTENT_REMOVE_DATE_ENTRY_NOT_FOUND, MSG_WELCOME_REPROMPT, toSpokenDate(date), type);
+         }
+         
+         if(typeList.isEmpty())
+         {
+            calendarEntriesForDate.remove(date.toString());
+         }
+         
+         setSessionAttributeAsJson(ATTR_DATA, calendarData);
+         WasteCalendarDao.save(getDb(), calendarData);
+         
+         return newSpeechletAskResponseWithReprompt(MSG_INTENT_REMOVE_DATE_ENTRY_SUCCESS, MSG_WELCOME_REPROMPT, toSpokenDate(date), type);
+      }
+
+      ////////////////////////////////////
+      // Get entries for a special date //
+      ////////////////////////////////////
+      if(INTENT_GET_DATE_ENTRIES.equals(intentName))
+      {
+         final LocalDate date = getDate(intent);
+         
+         final Map<String, List<String>> calendarEntriesForDate = calendarData.getData().getEntries();
+         List<String> typeList = calendarEntriesForDate.get(date.toString());
+         if(typeList == null || typeList.isEmpty())
+         {
+            return newSpeechletAskResponseWithReprompt(MSG_INTENT_GET_DATE_ENTRIES_NONE, MSG_WELCOME_REPROMPT, toSpokenDate(date));
+         }
+         
+         return newSpeechletAskResponseWithReprompt(MSG_INTENT_GET_DATE_ENTRIES_RESULT, MSG_WELCOME_REPROMPT, toSpokenDate(date), String.join(", ", typeList));
       }
 
       return newSpeechletAskResponseWithReprompt("unknownIntent", MSG_WELCOME_REPROMPT);
@@ -106,17 +164,7 @@ public class WasteCalendarSpeechlet extends AbstractSpeechlet
    
    private LocalDate getDate(Intent intent) throws SpeechletResponseThrowable
    {
-      final String dateString = getSlot(intent, SLOT_DATE, MSG_SLOT_DATE_EMPTY, MSG_WELCOME_REPROMPT);
-      
-      try
-      {
-         return LocalDate.parse(dateString);
-      }
-      catch(Exception ex)
-      {
-         log.warn("Could not parse date string!", ex);
-         throw new SpeechletResponseThrowable(newSpeechletAskResponseWithReprompt(MSG_SLOT_DATE_FORMAT, MSG_WELCOME_REPROMPT));
-      }
+      return getSlotLocalDate(intent, SLOT_DATE, MSG_SLOT_DATE_EMPTY, MSG_SLOT_DATE_FORMAT, MSG_WELCOME_REPROMPT);
    }
 
    private AmazonDynamoDB getDb()
