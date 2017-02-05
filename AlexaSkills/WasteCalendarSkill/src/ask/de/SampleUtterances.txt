@@ -1,6 +1,12 @@
 AMAZON.StopIntent Ende
 AMAZON.StopIntent fertig
 
+CheckStatus prüfen
+CheckStatus prüfe Status
+CheckStatus zu prüfen
+CheckStatus Status prüfen
+CheckStatus Status zu prüfen
+
 AddEntry {Type} {Date}
 AddEntry {Type} am {Date}
 AddEntry am {Date} {Type}

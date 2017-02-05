@@ -1,9 +1,12 @@
 package net.sf.javagimmicks.ask.wastecalendar;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
+import org.joda.time.Days;
 import org.joda.time.LocalDate;
 import org.joda.time.format.DateTimeFormat;
 
@@ -27,6 +30,10 @@ public class WasteCalendarSpeechlet extends AbstractSpeechlet
    private static final String MSG_SLOT_DATE_EMPTY = "slot.date.empty";
    private static final String MSG_SLOT_DATE_FORMAT = "slot.date.format";
    private static final String MSG_SLOT_TYPE_EMPTY = "slot.type.empty";
+   private static final String MSG_INTENT_CHECK_STATUS_TODAY = "intent.checkStatus.today";
+   private static final String MSG_INTENT_CHECK_STATUS_TOMORROW = "intent.checkStatus.tomorrow";
+   private static final String MSG_INTENT_CHECK_STATUS_DAYS = "intent.checkStatus.days";
+   private static final String MSG_INTENT_CHECK_STATUS_NONE = "intent.checkStatus.none";
    private static final String MSG_INTENT_ADD_ENTRY_OK = "intent.addEntry.ok";
    private static final String MSG_INTENT_ADD_ENTRY_DUPLICATE = "intent.addEntry.duplicate";
    private static final String MSG_INTENT_GET_DATE_ENTRIES_NONE = "intent.getDateEntries.none";
@@ -34,6 +41,7 @@ public class WasteCalendarSpeechlet extends AbstractSpeechlet
    private static final String MSG_INTENT_REMOVE_DATE_ENTRY_NOT_FOUND = "intent.removeDateEntry.notFound";
    private static final String MSG_INTENT_REMOVE_DATE_ENTRY_SUCCESS = "intent.removeDateEntry.success";
 
+   private static final String INTENT_CHECK_STATUS = "CheckStatus";
    private static final String INTENT_ADD_ENTRY = "AddEntry";
    private static final String INTENT_GET_DATE_ENTRIES = "GetDateEntries";
    private static final String INTENT_REMOVE_DATE_ENTRY = "RemoveDateEntry";
@@ -65,6 +73,64 @@ public class WasteCalendarSpeechlet extends AbstractSpeechlet
       
       final CalendarData calendarData = getCalendarData();
    
+      //////////////////
+      // Check status //
+      //////////////////
+      if(INTENT_CHECK_STATUS.equals(intentName))
+      {
+         final LocalDate currentDay = LocalDate.fromDateFields(request.getTimestamp());
+         
+         boolean changed = false;
+         
+         try
+         {
+            final Map<String, List<String>> calendarEntriesForDate = calendarData.getData().getEntries();
+            for(Iterator<Entry<String, List<String>>> i = calendarEntriesForDate.entrySet().iterator(); i.hasNext();)
+            {
+               final Entry<String, List<String>> e = i.next();
+               
+               final List<String> entries = e.getValue();
+               if(entries == null || entries.isEmpty())
+               {
+                  return newSpeechletAskResponseWithReprompt(MSG_INTENT_CHECK_STATUS_NONE, MSG_WELCOME_REPROMPT);
+               }
+               
+               final LocalDate refDay = LocalDate.parse(e.getKey());
+               
+               final int offset = Days.daysBetween(currentDay, refDay).getDays();
+               
+               if(offset < 0)
+               {
+                  i.remove();
+                  changed = true;
+               }
+               else if(offset == 0)
+               {
+                  return newSpeechletAskResponseWithReprompt(MSG_INTENT_CHECK_STATUS_TODAY, MSG_WELCOME_REPROMPT, String.join(", ", e.getValue()));
+               }
+               else if(offset == 1)
+               {
+                  return newSpeechletAskResponseWithReprompt(MSG_INTENT_CHECK_STATUS_TOMORROW, MSG_WELCOME_REPROMPT, String.join(", ", e.getValue()));
+               }
+               else if(offset <= 3)
+               {
+                  return newSpeechletAskResponseWithReprompt(MSG_INTENT_CHECK_STATUS_DAYS, MSG_WELCOME_REPROMPT, offset, String.join(", ", e.getValue()));
+               }
+            }
+         }
+         finally
+         {
+            if(changed)
+            {
+               setSessionAttributeAsJson(ATTR_DATA, calendarData);
+               WasteCalendarDao.save(getDb(), calendarData);
+            }
+            
+         }
+         
+         return newSpeechletAskResponseWithReprompt(MSG_INTENT_CHECK_STATUS_NONE, MSG_WELCOME_REPROMPT);
+      }
+      
       /////////////////////
       // Add a new entry //
       /////////////////////
