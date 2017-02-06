@@ -39,6 +39,15 @@
       ]
     },
     {
+      "intent": "RemoveDate",
+      "slots": [
+        {
+          "name": "Date",
+          "type": "AMAZON.DATE"
+        }
+      ]
+    },
+    {
       "intent": "GetDateEntries",
       "slots": [
         {

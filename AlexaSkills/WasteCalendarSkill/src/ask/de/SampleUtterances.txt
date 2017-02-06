@@ -1,6 +1,15 @@
 AMAZON.StopIntent Ende
 AMAZON.StopIntent fertig
 
+CheckStatus was als nächstes ansteht
+CheckStatus nach den nächsten Abholungen
+CheckStatus nach der nächsten Abholung
+CheckStatus nach den nächsten Terminen
+CheckStatus nach dem nächsten Termin
+CheckStatus nächste Abholungen
+CheckStatus nächste Abholung
+CheckStatus nächste Termine
+CheckStatus nächster Termin
 CheckStatus prüfen
 CheckStatus prüfe Status
 CheckStatus zu prüfen
@@ -33,6 +42,17 @@ RemoveDateEntry entferne vom {Date} {Type}
 RemoveDateEntry entferne am {Date} {Type}
 RemoveDateEntry entferne vom {Date} den Eintrag {Type}
 RemoveDateEntry entferne am {Date} den Eintrag {Type}
+
+RemoveDate entferne {Date}
+RemoveDate {Date} entfernen
+RemoveDate entferne Einträge vom {Date}
+RemoveDate entferne Einträge am {Date}
+RemoveDate die Einträge vom {Date} entfernen
+RemoveDate die Einträge am {Date} entfernen
+RemoveDate die Einträge vom {Date} zu entfernen
+RemoveDate die Einträge am {Date} zu entfernen
+RemoveDate entferne vom {Date} die Einträge
+RemoveDate entferne am {Date} die Einträge
 
 GetDateEntries Einträge vom {Date}
 GetDateEntries was ist am {Date}

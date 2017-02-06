@@ -40,11 +40,14 @@ public class WasteCalendarSpeechlet extends AbstractSpeechlet
    private static final String MSG_INTENT_GET_DATE_ENTRIES_RESULT = "intent.getDateEntries.result";
    private static final String MSG_INTENT_REMOVE_DATE_ENTRY_NOT_FOUND = "intent.removeDateEntry.notFound";
    private static final String MSG_INTENT_REMOVE_DATE_ENTRY_SUCCESS = "intent.removeDateEntry.success";
+   private static final String MSG_INTENT_REMOVE_DATE_NOT_FOUND = "intent.removeDate.notFound";
+   private static final String MSG_INTENT_REMOVE_DATE_SUCCESS = "intent.removeDate.success";
 
    private static final String INTENT_CHECK_STATUS = "CheckStatus";
    private static final String INTENT_ADD_ENTRY = "AddEntry";
    private static final String INTENT_GET_DATE_ENTRIES = "GetDateEntries";
    private static final String INTENT_REMOVE_DATE_ENTRY = "RemoveDateEntry";
+   private static final String INTENT_REMOVE_DATE = "RemoveDate";
 
    private static final String SLOT_DATE = "Date";
    private static final String SLOT_TYPE = "Type";
@@ -186,6 +189,28 @@ public class WasteCalendarSpeechlet extends AbstractSpeechlet
          return newSpeechletAskResponseWithReprompt(MSG_INTENT_REMOVE_DATE_ENTRY_SUCCESS, MSG_WELCOME_REPROMPT, toSpokenDate(date), type);
       }
 
+      ////////////////////////////////////////////
+      // Remove all entries from a certain date //
+      ////////////////////////////////////////////
+      if(INTENT_REMOVE_DATE.equals(intentName))
+      {
+         final LocalDate date = getDate(intent);
+         
+         final Map<String, List<String>> calendarEntriesForDate = calendarData.getData().getEntries();
+         List<String> typeList = calendarEntriesForDate.get(date.toString());
+         if(typeList == null || typeList.isEmpty())
+         {
+            return newSpeechletAskResponseWithReprompt(MSG_INTENT_REMOVE_DATE_NOT_FOUND, MSG_WELCOME_REPROMPT, toSpokenDate(date));
+         }
+         
+         calendarEntriesForDate.remove(date.toString());
+         
+         setSessionAttributeAsJson(ATTR_DATA, calendarData);
+         WasteCalendarDao.save(getDb(), calendarData);
+         
+         return newSpeechletAskResponseWithReprompt(MSG_INTENT_REMOVE_DATE_SUCCESS, MSG_WELCOME_REPROMPT, toSpokenDate(date));
+      }
+
       ////////////////////////////////////
       // Get entries for a special date //
       ////////////////////////////////////
@@ -245,7 +270,7 @@ public class WasteCalendarSpeechlet extends AbstractSpeechlet
    
    private String toSpokenDate(LocalDate date)
    {
-      return date.toString(DateTimeFormat.fullDate().withLocale(getRequestLocale()));
+      return date.toString(DateTimeFormat.mediumDate().withLocale(getRequestLocale()));
    }
 
 }
