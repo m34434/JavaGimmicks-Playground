@@ -1,3 +1,11 @@
 AMAZON.StopIntent Ende
 AMAZON.StopIntent fertig
 
+ListItems Liste vorlesen
+ListItems die Liste vorzulesen
+
+AddItem füge {Item} hinzu
+AddItem {Item} hinzuzufügen
+
+RemoveItem entferne {Item}
+RemoveItem {Item} zu entfernen

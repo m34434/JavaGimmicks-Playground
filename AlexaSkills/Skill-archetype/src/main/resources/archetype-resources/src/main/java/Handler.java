@@ -1,4 +1,4 @@
-package net.sf.javagimmicks.ask.shopshop;
+package ${package};
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -9,6 +9,6 @@ public class Handler extends SpeechletRequestStreamHandler
 {
    public Handler()
    {
-      super(new ShopShopSpeechlet(), new HashSet<>(Arrays.asList("amzn1.ask.skill.d41c0b3f-7486-4d95-81d2-96f207302ff8")));
+      super(new Speechlet(), new HashSet<>(Arrays.asList("<skill application id>")));
    }
 }

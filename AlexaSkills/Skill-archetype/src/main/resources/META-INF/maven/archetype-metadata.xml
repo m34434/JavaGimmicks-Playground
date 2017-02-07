@@ -35,7 +35,6 @@
 				<include>**/*.txt</include>
 			</includes>
 		</fileSet>
-		<!--
 		<fileSet filtered="true" packaged="true" encoding="UTF-8">
 			<directory>src/test/java</directory>
 			<includes>
@@ -49,6 +48,5 @@
 				<include>**/*.properties</include>
 			</includes>
 		</fileSet>
-		-->
 	</fileSets>
 </archetype-descriptor>
