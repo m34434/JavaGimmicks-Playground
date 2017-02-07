@@ -1,0 +1,18 @@
+AMAZON.StopIntent Ende
+AMAZON.StopIntent fertig
+
+SetTitle nenn mich {Title}
+SetTitle sag {Title} zu mir
+SetTitle ich bin {Title}
+
+AddNumbers addiere {NumberA} und {NumberB}
+AddNumbers wieviel ist {NumberA} plus {NumberB}
+
+SubtractNumbers subtrahiere {NumberA} und {NumberB}
+SubtractNumbers wieviel ist {NumberA} minus {NumberB}
+
+MultiplyNumbers multipliziere {NumberA} und {NumberB}
+MultiplyNumbers wieviel ist {NumberA} mal {NumberB}
+
+DivideNumbers dividiere {NumberA} durch {NumberB}
+DivideNumbers wieviel ist {NumberA} durch {NumberB}
