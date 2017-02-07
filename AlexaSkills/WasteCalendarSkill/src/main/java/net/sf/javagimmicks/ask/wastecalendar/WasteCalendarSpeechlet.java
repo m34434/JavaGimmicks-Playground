@@ -24,33 +24,45 @@ import net.sf.javagimmicks.ask.wastecalendar.model.WasteCalendarDao;
 
 public class WasteCalendarSpeechlet extends AbstractSpeechlet
 {
-   private static final String MSG_WELCOME = "welcome";
-   private static final String MSG_WELCOME_REPROMPT = "welcome.reprompt";
-   private static final String MSG_GOODBYE = "goodbye";
-   private static final String MSG_SLOT_DATE_EMPTY = "slot.date.empty";
-   private static final String MSG_SLOT_DATE_FORMAT = "slot.date.format";
-   private static final String MSG_SLOT_TYPE_EMPTY = "slot.type.empty";
-   private static final String MSG_INTENT_CHECK_STATUS_TODAY = "intent.checkStatus.today";
-   private static final String MSG_INTENT_CHECK_STATUS_TOMORROW = "intent.checkStatus.tomorrow";
-   private static final String MSG_INTENT_CHECK_STATUS_DAYS = "intent.checkStatus.days";
-   private static final String MSG_INTENT_CHECK_STATUS_NONE = "intent.checkStatus.none";
-   private static final String MSG_INTENT_ADD_ENTRY_OK = "intent.addEntry.ok";
-   private static final String MSG_INTENT_ADD_ENTRY_DUPLICATE = "intent.addEntry.duplicate";
-   private static final String MSG_INTENT_GET_DATE_ENTRIES_NONE = "intent.getDateEntries.none";
-   private static final String MSG_INTENT_GET_DATE_ENTRIES_RESULT = "intent.getDateEntries.result";
-   private static final String MSG_INTENT_REMOVE_DATE_ENTRY_NOT_FOUND = "intent.removeDateEntry.notFound";
-   private static final String MSG_INTENT_REMOVE_DATE_ENTRY_SUCCESS = "intent.removeDateEntry.success";
-   private static final String MSG_INTENT_REMOVE_DATE_NOT_FOUND = "intent.removeDate.notFound";
-   private static final String MSG_INTENT_REMOVE_DATE_SUCCESS = "intent.removeDate.success";
+   // Declare your intent names here
+   private interface IntentName
+   {
+      String CHECK_STATUS = "CheckStatus";
+      String ADD_ENTRY = "AddEntry";
+      String GET_DATE_ENTRIES = "GetDateEntries";
+      String REMOVE_DATE_ENTRY = "RemoveDateEntry";
+      String REMOVE_DATE = "RemoveDate";
+   }
+   
+   // Declare your slot types
+   private interface Slot
+   {
+      String DATE = "Date";
+      String TYPE = "Type";
+   }
 
-   private static final String INTENT_CHECK_STATUS = "CheckStatus";
-   private static final String INTENT_ADD_ENTRY = "AddEntry";
-   private static final String INTENT_GET_DATE_ENTRIES = "GetDateEntries";
-   private static final String INTENT_REMOVE_DATE_ENTRY = "RemoveDateEntry";
-   private static final String INTENT_REMOVE_DATE = "RemoveDate";
-
-   private static final String SLOT_DATE = "Date";
-   private static final String SLOT_TYPE = "Type";
+   // Declare your message keys here
+   private interface Msg
+   {
+      String WELCOME = "welcome";
+      String WELCOME_REPROMPT = "welcome.reprompt";
+      String GOODBYE = "goodbye";
+      String SLOT_DATE_EMPTY = "slot.date.empty";
+      String SLOT_DATE_FORMAT = "slot.date.format";
+      String SLOT_TYPE_EMPTY = "slot.type.empty";
+      String INTENT_CHECK_STATUS_TODAY = "intent.checkStatus.today";
+      String INTENT_CHECK_STATUS_TOMORROW = "intent.checkStatus.tomorrow";
+      String INTENT_CHECK_STATUS_DAYS = "intent.checkStatus.days";
+      String INTENT_CHECK_STATUS_NONE = "intent.checkStatus.none";
+      String INTENT_ADD_ENTRY_OK = "intent.addEntry.ok";
+      String INTENT_ADD_ENTRY_DUPLICATE = "intent.addEntry.duplicate";
+      String INTENT_GET_DATE_ENTRIES_NONE = "intent.getDateEntries.none";
+      String INTENT_GET_DATE_ENTRIES_RESULT = "intent.getDateEntries.result";
+      String INTENT_REMOVE_DATE_ENTRY_NOT_FOUND = "intent.removeDateEntry.notFound";
+      String INTENT_REMOVE_DATE_ENTRY_SUCCESS = "intent.removeDateEntry.success";
+      String INTENT_REMOVE_DATE_NOT_FOUND = "intent.removeDate.notFound";
+      String INTENT_REMOVE_DATE_SUCCESS = "intent.removeDate.success";
+   }
    
    private static final String ATTR_DATA = "___data___";
 
@@ -58,7 +70,7 @@ public class WasteCalendarSpeechlet extends AbstractSpeechlet
 
    protected SpeechletResponse onLaunchInternal(LaunchRequest request) throws SpeechletResponseThrowable
    {
-      return newSpeechletAskResponseWithReprompt(MSG_WELCOME, MSG_WELCOME_REPROMPT);
+      return newSpeechletAskResponseWithReprompt(Msg.WELCOME, Msg.WELCOME_REPROMPT);
    }
 
    protected SpeechletResponse onIntentInternal(IntentRequest request) throws SpeechletResponseThrowable
@@ -71,7 +83,7 @@ public class WasteCalendarSpeechlet extends AbstractSpeechlet
       ////////////////////////////
       if(INTENT_STOP.equals(intentName) || INTENT_CANCEL.equals(intentName))
       {
-         return newSpeechletTellResponse(MSG_GOODBYE);
+         return newSpeechletTellResponse(Msg.GOODBYE);
       }
       
       final CalendarData calendarData = getCalendarData();
@@ -79,7 +91,7 @@ public class WasteCalendarSpeechlet extends AbstractSpeechlet
       //////////////////
       // Check status //
       //////////////////
-      if(INTENT_CHECK_STATUS.equals(intentName))
+      if(IntentName.CHECK_STATUS.equals(intentName))
       {
          final LocalDate currentDay = LocalDate.fromDateFields(request.getTimestamp());
          
@@ -95,7 +107,7 @@ public class WasteCalendarSpeechlet extends AbstractSpeechlet
                final List<String> entries = e.getValue();
                if(entries == null || entries.isEmpty())
                {
-                  return newSpeechletAskResponseWithReprompt(MSG_INTENT_CHECK_STATUS_NONE, MSG_WELCOME_REPROMPT);
+                  return newSpeechletAskResponseWithReprompt(Msg.INTENT_CHECK_STATUS_NONE, Msg.WELCOME_REPROMPT);
                }
                
                final LocalDate refDay = LocalDate.parse(e.getKey());
@@ -109,15 +121,15 @@ public class WasteCalendarSpeechlet extends AbstractSpeechlet
                }
                else if(offset == 0)
                {
-                  return newSpeechletAskResponseWithReprompt(MSG_INTENT_CHECK_STATUS_TODAY, MSG_WELCOME_REPROMPT, String.join(", ", e.getValue()));
+                  return newSpeechletAskResponseWithReprompt(Msg.INTENT_CHECK_STATUS_TODAY, Msg.WELCOME_REPROMPT, String.join(", ", e.getValue()));
                }
                else if(offset == 1)
                {
-                  return newSpeechletAskResponseWithReprompt(MSG_INTENT_CHECK_STATUS_TOMORROW, MSG_WELCOME_REPROMPT, String.join(", ", e.getValue()));
+                  return newSpeechletAskResponseWithReprompt(Msg.INTENT_CHECK_STATUS_TOMORROW, Msg.WELCOME_REPROMPT, String.join(", ", e.getValue()));
                }
                else if(offset <= 3)
                {
-                  return newSpeechletAskResponseWithReprompt(MSG_INTENT_CHECK_STATUS_DAYS, MSG_WELCOME_REPROMPT, offset, String.join(", ", e.getValue()));
+                  return newSpeechletAskResponseWithReprompt(Msg.INTENT_CHECK_STATUS_DAYS, Msg.WELCOME_REPROMPT, offset, String.join(", ", e.getValue()));
                }
             }
          }
@@ -131,16 +143,16 @@ public class WasteCalendarSpeechlet extends AbstractSpeechlet
             
          }
          
-         return newSpeechletAskResponseWithReprompt(MSG_INTENT_CHECK_STATUS_NONE, MSG_WELCOME_REPROMPT);
+         return newSpeechletAskResponseWithReprompt(Msg.INTENT_CHECK_STATUS_NONE, Msg.WELCOME_REPROMPT);
       }
       
       /////////////////////
       // Add a new entry //
       /////////////////////
-      if(INTENT_ADD_ENTRY.equals(intentName))
+      if(IntentName.ADD_ENTRY.equals(intentName))
       {
          final LocalDate date = getDate(intent);
-         final String type = getSlot(intent, SLOT_TYPE, MSG_SLOT_TYPE_EMPTY, MSG_WELCOME_REPROMPT).toLowerCase();
+         final String type = getSlot(intent, Slot.TYPE, Msg.SLOT_TYPE_EMPTY, Msg.WELCOME_REPROMPT).toLowerCase();
          
          final Map<String, List<String>> calendarEntriesForDate = calendarData.getData().getEntries();
          List<String> typeList = calendarEntriesForDate.get(date.toString());
@@ -152,7 +164,7 @@ public class WasteCalendarSpeechlet extends AbstractSpeechlet
          
          if(typeList.contains(type))
          {
-            return newSpeechletAskResponseWithReprompt(MSG_INTENT_ADD_ENTRY_DUPLICATE, MSG_WELCOME_REPROMPT, toSpokenDate(date), type);
+            return newSpeechletAskResponseWithReprompt(Msg.INTENT_ADD_ENTRY_DUPLICATE, Msg.WELCOME_REPROMPT, toSpokenDate(date), type);
          }
          
          typeList.add(type);
@@ -160,22 +172,22 @@ public class WasteCalendarSpeechlet extends AbstractSpeechlet
          setSessionAttributeAsJson(ATTR_DATA, calendarData);
          WasteCalendarDao.save(getDb(), calendarData);
          
-         return newSpeechletAskResponseWithReprompt(MSG_INTENT_ADD_ENTRY_OK, MSG_WELCOME_REPROMPT, toSpokenDate(date), type);
+         return newSpeechletAskResponseWithReprompt(Msg.INTENT_ADD_ENTRY_OK, Msg.WELCOME_REPROMPT, toSpokenDate(date), type);
       }
 
       /////////////////////////////////////////
       // Remove an entry from a certain date //
       /////////////////////////////////////////
-      if(INTENT_REMOVE_DATE_ENTRY.equals(intentName))
+      if(IntentName.REMOVE_DATE_ENTRY.equals(intentName))
       {
          final LocalDate date = getDate(intent);
-         final String type = getSlot(intent, SLOT_TYPE, MSG_SLOT_TYPE_EMPTY, MSG_WELCOME_REPROMPT).toLowerCase();
+         final String type = getSlot(intent, Slot.TYPE, Msg.SLOT_TYPE_EMPTY, Msg.WELCOME_REPROMPT).toLowerCase();
          
          final Map<String, List<String>> calendarEntriesForDate = calendarData.getData().getEntries();
          List<String> typeList = calendarEntriesForDate.get(date.toString());
          if(typeList == null || !typeList.remove(type))
          {
-            return newSpeechletAskResponseWithReprompt(MSG_INTENT_REMOVE_DATE_ENTRY_NOT_FOUND, MSG_WELCOME_REPROMPT, toSpokenDate(date), type);
+            return newSpeechletAskResponseWithReprompt(Msg.INTENT_REMOVE_DATE_ENTRY_NOT_FOUND, Msg.WELCOME_REPROMPT, toSpokenDate(date), type);
          }
          
          if(typeList.isEmpty())
@@ -186,13 +198,13 @@ public class WasteCalendarSpeechlet extends AbstractSpeechlet
          setSessionAttributeAsJson(ATTR_DATA, calendarData);
          WasteCalendarDao.save(getDb(), calendarData);
          
-         return newSpeechletAskResponseWithReprompt(MSG_INTENT_REMOVE_DATE_ENTRY_SUCCESS, MSG_WELCOME_REPROMPT, toSpokenDate(date), type);
+         return newSpeechletAskResponseWithReprompt(Msg.INTENT_REMOVE_DATE_ENTRY_SUCCESS, Msg.WELCOME_REPROMPT, toSpokenDate(date), type);
       }
 
       ////////////////////////////////////////////
       // Remove all entries from a certain date //
       ////////////////////////////////////////////
-      if(INTENT_REMOVE_DATE.equals(intentName))
+      if(IntentName.REMOVE_DATE.equals(intentName))
       {
          final LocalDate date = getDate(intent);
          
@@ -200,7 +212,7 @@ public class WasteCalendarSpeechlet extends AbstractSpeechlet
          List<String> typeList = calendarEntriesForDate.get(date.toString());
          if(typeList == null || typeList.isEmpty())
          {
-            return newSpeechletAskResponseWithReprompt(MSG_INTENT_REMOVE_DATE_NOT_FOUND, MSG_WELCOME_REPROMPT, toSpokenDate(date));
+            return newSpeechletAskResponseWithReprompt(Msg.INTENT_REMOVE_DATE_NOT_FOUND, Msg.WELCOME_REPROMPT, toSpokenDate(date));
          }
          
          calendarEntriesForDate.remove(date.toString());
@@ -208,13 +220,13 @@ public class WasteCalendarSpeechlet extends AbstractSpeechlet
          setSessionAttributeAsJson(ATTR_DATA, calendarData);
          WasteCalendarDao.save(getDb(), calendarData);
          
-         return newSpeechletAskResponseWithReprompt(MSG_INTENT_REMOVE_DATE_SUCCESS, MSG_WELCOME_REPROMPT, toSpokenDate(date));
+         return newSpeechletAskResponseWithReprompt(Msg.INTENT_REMOVE_DATE_SUCCESS, Msg.WELCOME_REPROMPT, toSpokenDate(date));
       }
 
       ////////////////////////////////////
       // Get entries for a special date //
       ////////////////////////////////////
-      if(INTENT_GET_DATE_ENTRIES.equals(intentName))
+      if(IntentName.GET_DATE_ENTRIES.equals(intentName))
       {
          final LocalDate date = getDate(intent);
          
@@ -222,13 +234,13 @@ public class WasteCalendarSpeechlet extends AbstractSpeechlet
          List<String> typeList = calendarEntriesForDate.get(date.toString());
          if(typeList == null || typeList.isEmpty())
          {
-            return newSpeechletAskResponseWithReprompt(MSG_INTENT_GET_DATE_ENTRIES_NONE, MSG_WELCOME_REPROMPT, toSpokenDate(date));
+            return newSpeechletAskResponseWithReprompt(Msg.INTENT_GET_DATE_ENTRIES_NONE, Msg.WELCOME_REPROMPT, toSpokenDate(date));
          }
          
-         return newSpeechletAskResponseWithReprompt(MSG_INTENT_GET_DATE_ENTRIES_RESULT, MSG_WELCOME_REPROMPT, toSpokenDate(date), String.join(", ", typeList));
+         return newSpeechletAskResponseWithReprompt(Msg.INTENT_GET_DATE_ENTRIES_RESULT, Msg.WELCOME_REPROMPT, toSpokenDate(date), String.join(", ", typeList));
       }
 
-      return newSpeechletAskResponseWithReprompt("unknownIntent", MSG_WELCOME_REPROMPT);
+      return newSpeechletAskResponseWithReprompt("unknownIntent", Msg.WELCOME_REPROMPT);
    }
    
    private CalendarData getCalendarData() throws SpeechletResponseThrowable
@@ -255,7 +267,7 @@ public class WasteCalendarSpeechlet extends AbstractSpeechlet
    
    private LocalDate getDate(Intent intent) throws SpeechletResponseThrowable
    {
-      return getSlotLocalDate(intent, SLOT_DATE, MSG_SLOT_DATE_EMPTY, MSG_SLOT_DATE_FORMAT, MSG_WELCOME_REPROMPT);
+      return getSlotLocalDate(intent, Slot.DATE, Msg.SLOT_DATE_EMPTY, Msg.SLOT_DATE_FORMAT, Msg.WELCOME_REPROMPT);
    }
 
    private AmazonDynamoDB getDb()
