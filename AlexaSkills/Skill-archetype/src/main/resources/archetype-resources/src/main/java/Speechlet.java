@@ -34,14 +34,13 @@ public class Speechlet extends AbstractSpeechlet
       String WELCOME = "welcome";
       String WELCOME_REPROMPT = "welcome.reprompt";
       String GOODBYE = "goodbye";
+      String INTENT_UNKNOWN = "intent.unknown";
       
       String SLOT_ITEM_EMPTY = "slot.item.empty";
 
-      String INTENT_LIST_ITEMS_RESULT = "intent.listItems.ok";
-      String INTENT_ADD_ITEM_RESULT = "intent.addItem.ok";
-      String INTENT_REMOVE_ITEM_RESULT = "intent.removeItem.ok";
-      
-      String INTENT_UNKNOWN = "intent.unknown";
+      String INTENT_LIST_ITEMS_RESULT = "intent.listItems.result";
+      String INTENT_ADD_ITEM_RESULT = "intent.addItem.result";
+      String INTENT_REMOVE_ITEM_RESULT = "intent.removeItem.result";
    }
    
    private AmazonDynamoDB db;

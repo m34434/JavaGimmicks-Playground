@@ -215,6 +215,7 @@ public abstract class AbstractSpeechlet implements SpeechletV2
       }
       catch (MissingResourceException e)
       {
+         log.error("Could not find requested message key {} in resource bundle!", key);
          throw new SpeechletResponseThrowable(newSpeechletTellResponse(MSG_FATAL_ERROR));
       }
    }
@@ -234,6 +235,23 @@ public abstract class AbstractSpeechlet implements SpeechletV2
    protected String getSlot(Intent intent, String slotName, String messageKeyEmpty) throws SpeechletResponseThrowable
    {
       return getSlot(intent, slotName, messageKeyEmpty, messageKeyEmpty);
+   }
+
+   protected int getSlotInt(Intent intent, String slotName, String messageKeyEmpty, String messageKeyFormat,
+         String repromptMessageKey) throws SpeechletResponseThrowable
+   {
+      final String intString = getSlot(intent, slotName, messageKeyEmpty, messageKeyEmpty);
+
+      try
+      {
+         return Integer.parseInt(intString);
+      }
+      catch (Exception ex)
+      {
+         log.warn("Could not parse integer string!", ex);
+         throw new SpeechletResponseThrowable(
+               newSpeechletAskResponseWithReprompt(messageKeyFormat, repromptMessageKey));
+      }
    }
 
    protected LocalDate getSlotLocalDate(Intent intent, String slotName, String messageKeyEmpty, String messageKeyFormat,
