@@ -1,0 +1,34 @@
+{
+  "intents": [
+    {
+      "intent": "List"
+    },
+    {
+      "intent": "Add",
+      "slots": [
+        {
+          "name": "Item",
+          "type": "ITEM_TYPE"
+        }
+      ]
+    },
+    {
+      "intent": "Remove",
+      "slots": [
+        {
+          "name": "Item",
+          "type": "ITEM_TYPE"
+        }
+      ]
+    },
+    {
+      "intent": "AMAZON.HelpIntent"
+    },
+    {
+      "intent": "AMAZON.StopIntent"
+    },
+    {
+      "intent": "AMAZON.CancelIntent"
+    }
+  ]
+}

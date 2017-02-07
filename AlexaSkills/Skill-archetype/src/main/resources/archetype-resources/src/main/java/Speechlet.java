@@ -1,4 +1,4 @@
-package net.sf.javagimmicks.ask.shopshop;
+package ${package};
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -25,7 +25,7 @@ import net.sf.javagimmicks.shopshop.ShopShopClient;
 import net.sf.javagimmicks.shopshop.ShopShopClientException;
 import net.sf.javagimmicks.shopshop.util.ShopShopHelper;
 
-public class ShopShopSpeechlet extends AbstractSpeechlet
+public class Speechlet extends AbstractSpeechlet
 {
    private static final String MSG_WELCOME = "welcome";
    private static final String MSG_WELCOME_REPROMPT = "welcome.reprompt";

@@ -1,0 +1,3 @@
+AMAZON.StopIntent Ende
+AMAZON.StopIntent fertig
+

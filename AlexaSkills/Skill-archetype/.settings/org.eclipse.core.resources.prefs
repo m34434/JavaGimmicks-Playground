@@ -1,0 +1,6 @@
+eclipse.preferences.version=1
+encoding//src/main/resources/archetype-resources/src/ask/IntentSchema.json=UTF-8
+encoding//src/main/resources/archetype-resources/src/ask/de/SampleUtterances.txt=UTF-8
+encoding//src/main/resources/archetype-resources/src/ask/de/SlotType_ITEM_TYPE.txt=UTF-8
+encoding//src/main/resources/archetype-resources/src/main/resources/log4j.properties=UTF-8
+encoding//src/main/resources/archetype-resources/src/main/resources/messages.properties=UTF-8
