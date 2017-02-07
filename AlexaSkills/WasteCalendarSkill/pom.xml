@@ -14,7 +14,7 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>net.sf.javagimmicks.alexa</groupId>
+			<groupId>net.sf.javagimmicks.ask</groupId>
 			<artifactId>SkillFramework</artifactId>
 			<version>1.0.0-SNAPSHOT</version>
 		</dependency>

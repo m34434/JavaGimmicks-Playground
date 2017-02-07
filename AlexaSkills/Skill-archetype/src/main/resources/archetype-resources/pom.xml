@@ -23,7 +23,7 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>net.sf.javagimmicks.alexa</groupId>
+			<groupId>net.sf.javagimmicks.ask</groupId>
 			<artifactId>SkillFramework</artifactId>
 			<version>${skillFramework.version}</version>
 		</dependency>
