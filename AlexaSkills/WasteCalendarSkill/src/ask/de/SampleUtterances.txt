@@ -16,6 +16,34 @@ CheckStatus zu prüfen
 CheckStatus Status prüfen
 CheckStatus Status zu prüfen
 
+GetNextEntryDate nächste {Type}
+GetNextEntryDate nächster {Type}
+GetNextEntryDate nächstes {Type}
+GetNextEntryDate nächster {Type} Termin
+GetNextEntryDate nächste {Type} Abholung
+GetNextEntryDate nächstem Termin für {Type}
+GetNextEntryDate nächster Abholung von {Type}
+GetNextEntryDate dem nächstem Termin für {Type}
+GetNextEntryDate der nächster Abholung von {Type}
+GetNextEntryDate wann wird {Type} abgeholt
+GetNextEntryDate wann {Type} abgeholt wird
+GetNextEntryDate wann ist Abholung von {Type}
+GetNextEntryDate wann ist die Abholung von {Type}
+GetNextEntryDate wann Abholung von {Type} ist
+GetNextEntryDate wann die Abholung von {Type} ist
+GetNextEntryDate wann ist Termin für {Type}
+GetNextEntryDate wann ist der Termin für {Type}
+GetNextEntryDate wann Termin für {Type} ist
+GetNextEntryDate wann der Termin für {Type} ist
+GetNextEntryDate wann ist nächste Abholung von {Type}
+GetNextEntryDate wann ist die nächste Abholung von {Type}
+GetNextEntryDate wann nächste Abholung von {Type} ist
+GetNextEntryDate wann die nächste Abholung von {Type} ist
+GetNextEntryDate wann ist nächster Termin für {Type}
+GetNextEntryDate wann ist der nächste Termin für {Type}
+GetNextEntryDate wann nächster Termin für {Type} ist
+GetNextEntryDate wann der nächste Termin für {Type} ist
+
 AddEntry {Type} {Date}
 AddEntry {Type} am {Date}
 AddEntry am {Date} {Type}

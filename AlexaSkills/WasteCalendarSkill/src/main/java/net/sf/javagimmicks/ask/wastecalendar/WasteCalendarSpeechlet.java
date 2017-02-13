@@ -28,6 +28,7 @@ public class WasteCalendarSpeechlet extends AbstractSpeechlet
    private interface IntentName
    {
       String CHECK_STATUS = "CheckStatus";
+      String NEXT_ENTRY_DATE = "GetNextEntryDate";
       String ADD_ENTRY = "AddEntry";
       String GET_DATE_ENTRIES = "GetDateEntries";
       String REMOVE_DATE_ENTRY = "RemoveDateEntry";
@@ -54,6 +55,10 @@ public class WasteCalendarSpeechlet extends AbstractSpeechlet
       String INTENT_CHECK_STATUS_TOMORROW = "intent.checkStatus.tomorrow";
       String INTENT_CHECK_STATUS_DAYS = "intent.checkStatus.days";
       String INTENT_CHECK_STATUS_NONE = "intent.checkStatus.none";
+      String INTENT_NEXT_ENTRY_DATE_TODAY = "intent.getNextEntryDate.today";
+      String INTENT_NEXT_ENTRY_DATE_TOMORROW = "intent.getNextEntryDate.tomorrow";
+      String INTENT_NEXT_ENTRY_DATE_DAYS = "intent.getNextEntryDate.days";
+      String INTENT_NEXT_ENTRY_DATE_NONE = "intent.getNextEntryDate.none";
       String INTENT_ADD_ENTRY_OK = "intent.addEntry.ok";
       String INTENT_ADD_ENTRY_DUPLICATE = "intent.addEntry.duplicate";
       String INTENT_GET_DATE_ENTRIES_NONE = "intent.getDateEntries.none";
@@ -97,53 +102,106 @@ public class WasteCalendarSpeechlet extends AbstractSpeechlet
          
          boolean changed = false;
          
-         try
+         final Map<String, List<String>> calendarEntriesForDate = calendarData.getData().getEntries();
+         for(Iterator<Entry<String, List<String>>> i = calendarEntriesForDate.entrySet().iterator(); i.hasNext();)
          {
-            final Map<String, List<String>> calendarEntriesForDate = calendarData.getData().getEntries();
-            for(Iterator<Entry<String, List<String>>> i = calendarEntriesForDate.entrySet().iterator(); i.hasNext();)
+            final Entry<String, List<String>> e = i.next();
+            final LocalDate refDay = LocalDate.parse(e.getKey());
+            
+            final int offset = Days.daysBetween(currentDay, refDay).getDays();
+
+            // Remove outdated entries
+            if(offset < 0)
             {
-               final Entry<String, List<String>> e = i.next();
-               
-               final List<String> entries = e.getValue();
-               if(entries == null || entries.isEmpty())
-               {
-                  return newSpeechletAskResponseWithReprompt(Msg.INTENT_CHECK_STATUS_NONE, Msg.WELCOME_REPROMPT);
-               }
-               
-               final LocalDate refDay = LocalDate.parse(e.getKey());
-               
-               final int offset = Days.daysBetween(currentDay, refDay).getDays();
-               
-               if(offset < 0)
-               {
-                  i.remove();
-                  changed = true;
-               }
-               else if(offset == 0)
-               {
-                  return newSpeechletAskResponseWithReprompt(Msg.INTENT_CHECK_STATUS_TODAY, Msg.WELCOME_REPROMPT, String.join(", ", e.getValue()));
-               }
-               else if(offset == 1)
-               {
-                  return newSpeechletAskResponseWithReprompt(Msg.INTENT_CHECK_STATUS_TOMORROW, Msg.WELCOME_REPROMPT, String.join(", ", e.getValue()));
-               }
-               else if(offset <= 3)
-               {
-                  return newSpeechletAskResponseWithReprompt(Msg.INTENT_CHECK_STATUS_DAYS, Msg.WELCOME_REPROMPT, offset, String.join(", ", e.getValue()));
-               }
+               i.remove();
+               changed = true;
+               continue;
             }
-         }
-         finally
-         {
+            
+            // Update persistence
             if(changed)
             {
                setSessionAttributeAsJson(ATTR_DATA, calendarData);
                WasteCalendarDao.save(getDb(), calendarData);
             }
             
+            final List<String> entries = e.getValue();
+            if(entries == null || entries.isEmpty())
+            {
+               return newSpeechletAskResponseWithReprompt(Msg.INTENT_CHECK_STATUS_NONE, Msg.WELCOME_REPROMPT);
+            }
+            
+            if(offset == 0)
+            {
+               return newSpeechletAskResponseWithReprompt(Msg.INTENT_CHECK_STATUS_TODAY, Msg.WELCOME_REPROMPT, String.join(", ", e.getValue()));
+            }
+            else if(offset == 1)
+            {
+               return newSpeechletAskResponseWithReprompt(Msg.INTENT_CHECK_STATUS_TOMORROW, Msg.WELCOME_REPROMPT, String.join(", ", e.getValue()));
+            }
+            else if(offset <= 3)
+            {
+               return newSpeechletAskResponseWithReprompt(Msg.INTENT_CHECK_STATUS_DAYS, Msg.WELCOME_REPROMPT, offset, String.join(", ", e.getValue()));
+            }
          }
          
          return newSpeechletAskResponseWithReprompt(Msg.INTENT_CHECK_STATUS_NONE, Msg.WELCOME_REPROMPT);
+      }
+      
+      /////////////////////////
+      // Get next entry date //
+      /////////////////////////
+      if(IntentName.NEXT_ENTRY_DATE.equals(intentName))
+      {
+         final String type = getSlot(intent, Slot.TYPE, Msg.SLOT_TYPE_EMPTY, Msg.WELCOME_REPROMPT).toLowerCase();
+         
+         final LocalDate currentDay = LocalDate.fromDateFields(request.getTimestamp());
+
+         boolean changed = false;
+
+         for(Iterator<Entry<String, List<String>>> i = calendarData.getData().getEntries().entrySet().iterator(); i.hasNext();)
+         {
+            final Entry<String, List<String>> e = i.next();
+            final LocalDate refDay = LocalDate.parse(e.getKey());
+            
+            final int offset = Days.daysBetween(currentDay, refDay).getDays();
+            
+            // Remove outdated entries
+            if(offset < 0)
+            {
+               i.remove();
+               changed = true;
+               continue;
+            }
+            
+            // Update persistence
+            if(changed)
+            {
+               setSessionAttributeAsJson(ATTR_DATA, calendarData);
+               WasteCalendarDao.save(getDb(), calendarData);
+            }
+            
+            final List<String> typeList = e.getValue();
+            if(typeList != null && typeList.contains(type))
+            {
+               final String spokenDate = toSpokenDate(refDay);
+
+               if(offset == 0)
+               {
+                  return newSpeechletAskResponseWithReprompt(Msg.INTENT_NEXT_ENTRY_DATE_TODAY, Msg.WELCOME_REPROMPT, spokenDate, type);
+               }
+               else if(offset == 1)
+               {
+                  return newSpeechletAskResponseWithReprompt(Msg.INTENT_NEXT_ENTRY_DATE_TOMORROW, Msg.WELCOME_REPROMPT, spokenDate, type);
+               }
+               else
+               {
+                  return newSpeechletAskResponseWithReprompt(Msg.INTENT_NEXT_ENTRY_DATE_DAYS, Msg.WELCOME_REPROMPT, spokenDate, type, offset);
+               }
+            }
+         }
+         
+         return newSpeechletAskResponseWithReprompt(Msg.INTENT_NEXT_ENTRY_DATE_NONE, Msg.WELCOME_REPROMPT, type);
       }
       
       /////////////////////
@@ -284,5 +342,4 @@ public class WasteCalendarSpeechlet extends AbstractSpeechlet
    {
       return date.toString(DateTimeFormat.mediumDate().withLocale(getRequestLocale()));
    }
-
 }

@@ -13,6 +13,15 @@
       "intent": "CheckStatus"
     },
     {
+      "intent": "GetNextEntryDate",
+      "slots": [
+        {
+          "name": "Type",
+          "type": "TYPE"
+        }
+      ]
+    },
+    {
       "intent": "AddEntry",
       "slots": [
         {
