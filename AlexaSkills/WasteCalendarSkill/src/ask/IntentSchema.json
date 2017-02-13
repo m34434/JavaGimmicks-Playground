@@ -22,6 +22,9 @@
       ]
     },
     {
+      "intent": "GetLastEntryDate"
+    },
+    {
       "intent": "AddEntry",
       "slots": [
         {

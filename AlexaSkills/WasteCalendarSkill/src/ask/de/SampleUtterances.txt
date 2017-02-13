@@ -44,6 +44,17 @@ GetNextEntryDate wann ist der nächste Termin für {Type}
 GetNextEntryDate wann nächster Termin für {Type} ist
 GetNextEntryDate wann der nächste Termin für {Type} ist
 
+GetLastEntryDate nach dem letzten Eintrag
+GetLastEntryDate nach dem letzten Termin
+GetLastEntryDate wann der letzte Eintrag ist
+GetLastEntryDate wann der letzte Termin ist
+GetLastEntryDate wann ist der letzte Eintrag
+GetLastEntryDate wann ist der letzte Termin
+GetLastEntryDate welches der letzte Eintrag ist
+GetLastEntryDate welches der letzte Termin ist
+GetLastEntryDate welches ist der letzte Eintrag
+GetLastEntryDate welches ist der letzte Termin
+
 AddEntry {Type} {Date}
 AddEntry {Type} am {Date}
 AddEntry am {Date} {Type}

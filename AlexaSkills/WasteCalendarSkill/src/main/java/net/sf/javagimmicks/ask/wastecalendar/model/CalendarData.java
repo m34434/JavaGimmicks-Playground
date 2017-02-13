@@ -2,6 +2,7 @@ package net.sf.javagimmicks.ask.wastecalendar.model;
 
 import java.util.List;
 import java.util.Map;
+import java.util.SortedMap;
 import java.util.TreeMap;
 
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBAttribute;
@@ -50,9 +51,9 @@ public class CalendarData
    
    public static final class Data
    {
-      private Map<String, List<String>> entries;
+      private SortedMap<String, List<String>> entries;
 
-      public Map<String, List<String>> getEntries()
+      public SortedMap<String, List<String>> getEntries()
       {
          if(entries == null)
          {
