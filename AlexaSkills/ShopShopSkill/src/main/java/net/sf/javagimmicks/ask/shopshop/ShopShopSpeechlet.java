@@ -194,6 +194,16 @@ public class ShopShopSpeechlet extends AbstractSpeechlet
       }
    
       //////////
+      // Remove last item from list
+      /////////      
+      if(intentType == IntentType.RemoveLastItem)
+      {
+         final String listName = getSelectedListName(userData);
+
+         return removeLastItem(userData, listName);
+      }
+
+      //////////
       // Remove item from list
       /////////      
       if(intentType == IntentType.RemoveItem)
@@ -361,6 +371,33 @@ public class ShopShopSpeechlet extends AbstractSpeechlet
       }
       
       return newSpeechletAskResponseWithReprompt("addItem.ok", MSG_WELCOME_REPROMPT, getListItemSpokenText(listItem));
+   }
+   
+   private SpeechletResponse removeLastItem(final ShopShopUserData userData, final String listName) throws SpeechletResponseThrowable
+   {
+      try
+      {
+         final ShopShopClient shopShopClient = new ShopShopClient(userData.getDropboxAccessToken(), listName);
+         final List<ListItem> items = shopShopClient.getItems();
+         
+         if(items.isEmpty())
+         {
+            return newSpeechletAskResponseWithReprompt("removeLastItem.emptyList", MSG_WELCOME_REPROMPT);
+         }
+         
+         final int lastIndex = items.size() - 1;
+         
+         final String itemName = items.get(lastIndex).getName();
+         
+         shopShopClient.removeItem(lastIndex);
+         shopShopClient.save();
+         
+         return newSpeechletAskResponseWithReprompt("removeLastItem.ok", MSG_WELCOME_REPROMPT, itemName);
+      }
+      catch (ShopShopClientException e)
+      {
+         return newSpeechletAskResponseWithReprompt("dropbox.connect.error", MSG_WELCOME_REPROMPT);
+      }
    }
    
    private SpeechletResponse removeItem(final ShopShopUserData userData, final String listName, final String itemName) throws SpeechletResponseThrowable
