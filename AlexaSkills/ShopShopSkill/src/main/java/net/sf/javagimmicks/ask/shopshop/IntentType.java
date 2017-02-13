@@ -9,5 +9,6 @@ public enum IntentType
    AddAmountItemTyped,
    AddAmountItem,
    AddItem,
-   RemoveItem;
+   RemoveItem,
+   RemoveLastItem;
 }

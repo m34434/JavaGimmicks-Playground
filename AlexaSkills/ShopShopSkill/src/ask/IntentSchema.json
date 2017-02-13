@@ -67,6 +67,9 @@
       ]
     },
     {
+      "intent": "RemoveLastItem"
+    },
+    {
       "intent": "AMAZON.HelpIntent"
     },
     {

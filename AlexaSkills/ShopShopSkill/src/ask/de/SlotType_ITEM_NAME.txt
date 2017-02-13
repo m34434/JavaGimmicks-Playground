@@ -11,10 +11,13 @@ Brei
 Brezen
 Brot
 Butter
+Calendula
+Cashew
 Cashew Nüsse
 Chips
 Ciabatta
 Cracker
+Creme
 Deo
 Dinkelmehl
 Eier
@@ -25,7 +28,9 @@ Feuchtücher
 Fleischwurst
 Frischkäse
 Gefüllte Nudeln
+Gelatine
 Gelbwurst
+Gelierzucker
 Getreidebrei
 Gläschen
 Gries
@@ -33,7 +38,9 @@ Grillsauce
 Gurke
 Gurken
 Hackfleisch
+Handcreme
 Hühnerschnitzel
+Intim Waschlotion
 Kaffee
 Kaffeepulver
 Karotten
@@ -62,11 +69,14 @@ Nachos
 Nudeln
 Nudelsauce
 Nuss-Mix
+Obst
 Obstbrei
+Obstgläschen
 Ohrstäbchen
 Öl
 Olivenöl
 Orangensaft
+Popcorn
 Putenfleisch
 Putenschnitzel
 Q-Tipps
@@ -75,6 +85,8 @@ Ricotta
 Rinderfilet
 Rindfleisch
 Rosinensemmeln
+Saft
+Säfte
 Sahne
 Salat
 Salz
@@ -104,6 +116,8 @@ Tomate
 Tomaten
 Traubensaft
 Vollkornmehl
+Waschcreme
+Waschlotion
 Waschmittel
 Waschpulver
 Wasser
