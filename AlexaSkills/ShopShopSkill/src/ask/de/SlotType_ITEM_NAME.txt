@@ -18,7 +18,9 @@ Chips
 Ciabatta
 Cracker
 Creme
+Creme fraiche
 Deo
+Dinkelgries
 Dinkelmehl
 Eier
 Erdnüsse
@@ -48,12 +50,14 @@ Kartoffel
 Kartoffeln
 Käse
 Ketchup
+Kleber
 Knäckebrot
 Küchenrolle
 Kürbis
 Kürbisse
 Leberkäse
 Macadamia
+Maisgries
 Maismehl
 Mehl
 Mehrfruchtsaft
@@ -69,6 +73,7 @@ Nachos
 Nudeln
 Nudelsauce
 Nuss-Mix
+Nüsse
 Obst
 Obstbrei
 Obstgläschen
@@ -76,6 +81,7 @@ Ohrstäbchen
 Öl
 Olivenöl
 Orangensaft
+Polenta
 Popcorn
 Putenfleisch
 Putenschnitzel
@@ -97,6 +103,7 @@ Schweinefilet
 Schweinefleisch
 Schweineschnitzel
 Seife
+Sekundenkleber
 Semmeln
 Senf
 Shampoo
