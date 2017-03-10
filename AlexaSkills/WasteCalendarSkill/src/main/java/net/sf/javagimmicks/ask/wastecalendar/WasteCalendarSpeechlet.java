@@ -142,9 +142,10 @@ public class WasteCalendarSpeechlet extends AbstractSpeechlet
             {
                return newSpeechletAskResponseWithReprompt(Msg.INTENT_CHECK_STATUS_TOMORROW, Msg.WELCOME_REPROMPT, String.join(", ", e.getValue()));
             }
-            else if(offset <= 3)
+            else
             {
-               return newSpeechletAskResponseWithReprompt(Msg.INTENT_CHECK_STATUS_DAYS, Msg.WELCOME_REPROMPT, offset, String.join(", ", e.getValue()));
+               final String spokenDate = toSpokenDateLong(refDay);
+               return newSpeechletAskResponseWithReprompt(Msg.INTENT_CHECK_STATUS_DAYS, Msg.WELCOME_REPROMPT, offset, spokenDate, String.join(", ", e.getValue()));
             }
          }
          
@@ -187,18 +188,17 @@ public class WasteCalendarSpeechlet extends AbstractSpeechlet
             final List<String> typeList = e.getValue();
             if(typeList != null && typeList.contains(type))
             {
-               final String spokenDate = toSpokenDate(refDay);
-
                if(offset == 0)
                {
-                  return newSpeechletAskResponseWithReprompt(Msg.INTENT_NEXT_ENTRY_DATE_TODAY, Msg.WELCOME_REPROMPT, spokenDate, type);
+                  return newSpeechletAskResponseWithReprompt(Msg.INTENT_NEXT_ENTRY_DATE_TODAY, Msg.WELCOME_REPROMPT, type);
                }
                else if(offset == 1)
                {
-                  return newSpeechletAskResponseWithReprompt(Msg.INTENT_NEXT_ENTRY_DATE_TOMORROW, Msg.WELCOME_REPROMPT, spokenDate, type);
+                  return newSpeechletAskResponseWithReprompt(Msg.INTENT_NEXT_ENTRY_DATE_TOMORROW, Msg.WELCOME_REPROMPT, type);
                }
                else
                {
+                  final String spokenDate = toSpokenDateLong(refDay);
                   return newSpeechletAskResponseWithReprompt(Msg.INTENT_NEXT_ENTRY_DATE_DAYS, Msg.WELCOME_REPROMPT, spokenDate, type, offset);
                }
             }
@@ -384,6 +384,11 @@ public class WasteCalendarSpeechlet extends AbstractSpeechlet
       return db;
    }
    
+   private String toSpokenDateLong(LocalDate date)
+   {
+      return date.toString(DateTimeFormat.fullDate().withLocale(getRequestLocale()));
+   }
+
    private String toSpokenDate(LocalDate date)
    {
       return date.toString(DateTimeFormat.mediumDate().withLocale(getRequestLocale()));
