@@ -1,5 +1,7 @@
 package net.sf.javagimmicks.ask.mathbuddy.model;
 
+import java.util.Optional;
+
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 
@@ -7,12 +9,12 @@ public class SkillDataDao
 {
    private SkillDataDao() {}
 
-   public static SkillData load(final AmazonDynamoDB db, final String customerId)
+   public static Optional<SkillData> load(final AmazonDynamoDB db, final String customerId)
    {
       final SkillData skillData = new SkillData();
       skillData.setCustomerId(customerId);
       
-      return createDynamoDBMapper(db).load(skillData);
+      return Optional.ofNullable(createDynamoDBMapper(db).load(skillData));
    }
 
    public static void save(final AmazonDynamoDB db, final SkillData skillData)

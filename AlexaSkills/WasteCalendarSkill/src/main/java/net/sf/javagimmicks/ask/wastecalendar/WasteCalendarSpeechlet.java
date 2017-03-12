@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 
 import org.joda.time.Days;
 import org.joda.time.LocalDate;
@@ -349,20 +350,17 @@ public class WasteCalendarSpeechlet extends AbstractSpeechlet
    
    private CalendarData getCalendarData() throws SpeechletResponseThrowable
    {
-      CalendarData calendarData = parseSessionAttribute(ATTR_DATA, CalendarData.class); 
-
-      if(calendarData == null)
-      {
-          log.info("Loading user data from DynamoDB");
-          final String userId = getSession().getUser().getUserId();
-          calendarData = WasteCalendarDao.load(getDb(), userId);
-
-          if (calendarData == null)
-          {
-             calendarData = new CalendarData();
-             calendarData.setCustomerId(userId);
-          }
-      }
+      final CalendarData calendarData = parseSessionAttribute(ATTR_DATA, CalendarData.class).orElseGet(() -> {
+         log.info("Loading user data from DynamoDB");
+         final String userId = getSession().getUser().getUserId();
+         
+         return WasteCalendarDao.load(getDb(), userId).orElseGet(() -> {
+            final CalendarData r = new CalendarData();
+            r.setCustomerId(userId);
+            
+            return r;
+         });
+      });
       
       setSessionAttributeAsJson(ATTR_DATA, calendarData);
 

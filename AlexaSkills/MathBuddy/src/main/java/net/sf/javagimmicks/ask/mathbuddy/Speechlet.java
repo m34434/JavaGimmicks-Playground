@@ -158,17 +158,15 @@ public class Speechlet extends AbstractSpeechlet
    private SkillData loadData()
    {
       final String userId = getSession().getUser().getUserId();
-      SkillData skillData = SkillDataDao.load(getDb(), userId);
       
-      if(skillData == null)
-      {
-         skillData = new SkillData();
+      return SkillDataDao.load(getDb(), userId).orElseGet(() -> {
+         final SkillData skillData = new SkillData();
          skillData.setCustomerId(userId);
          
          saveData(skillData);
-      }
-      
-      return skillData;
+         
+         return skillData;
+      });
    }
 
    private void saveData(SkillData data)

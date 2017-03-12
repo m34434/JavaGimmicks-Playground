@@ -220,24 +220,19 @@ public class ShopShopSpeechlet extends AbstractSpeechlet
 
    private ShopShopUserData getUserData() throws SpeechletResponseThrowable
    {
-      ShopShopUserData userData = parseSessionAttribute(ATTR_USER_DATA, ShopShopUserData.class); 
-            // ShopShopUserData.fromSessionAttribute(getSession().getAttribute(ATTR_USER_DATA));
+      ShopShopUserData userData = parseSessionAttribute(ATTR_USER_DATA, ShopShopUserData.class).orElseGet(() -> {
+         log.info("Loading user data from DynamoDB");
+         final String userId = getSession().getUser().getUserId();
+         return ShopShopDao.load(getDb(), userId).orElseGet(() -> {
+            final ShopShopUserData r = new ShopShopUserData();
+            r.setCustomerId(userId);
 
-      if(userData == null)
-      {
-          log.info("Loading user data from DynamoDB");
-          final String userId = getSession().getUser().getUserId();
-          userData = ShopShopDao.load(getDb(), userId);
+            ShopShopDao.save(getDb(), r);
+            
+            return r;
+         });
+      }); 
 
-          if (userData == null)
-          {
-             userData = new ShopShopUserData();
-             userData.setCustomerId(userId);
-
-             ShopShopDao.save(getDb(), userData);
-          }
-      }
-      
       getSession().setAttribute(ATTR_USER_DATA, userData);
 
       return userData;

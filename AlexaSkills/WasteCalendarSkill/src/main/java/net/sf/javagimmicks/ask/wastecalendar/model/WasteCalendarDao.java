@@ -1,16 +1,18 @@
 package net.sf.javagimmicks.ask.wastecalendar.model;
 
+import java.util.Optional;
+
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 
 public class WasteCalendarDao
 {
-   public static CalendarData load(final AmazonDynamoDB db, String customerId)
+   public static Optional<CalendarData> load(final AmazonDynamoDB db, String customerId)
    {
       final CalendarData refItem = new CalendarData();
       refItem.setCustomerId(customerId);
       
-      return createDynamoDBMapper(db).load(refItem);
+      return Optional.ofNullable(createDynamoDBMapper(db).load(refItem));
    }
 
    public static void save(final AmazonDynamoDB db, final CalendarData item)

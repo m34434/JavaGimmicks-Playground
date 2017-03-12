@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Locale;
 import java.util.Map;
 import java.util.MissingResourceException;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 import org.apache.commons.beanutils.BeanMap;
@@ -295,23 +296,23 @@ public abstract class AbstractSpeechlet implements SpeechletV2
 
    }
 
-   protected <T> T parseSessionAttribute(String attributeName, Class<T> attributeClass)
+   protected <T> Optional<T> parseSessionAttribute(String attributeName, Class<T> attributeClass)
          throws SpeechletResponseThrowable
    {
       if (attributeClass == null)
       {
-         return null;
+         return Optional.empty();
       }
 
       final Object attribute = getSession().getAttribute(attributeName);
       if (attribute == null)
       {
-         return null;
+         return Optional.empty();
       }
 
       if (attributeClass.isInstance(attribute))
       {
-         return attributeClass.cast(attribute);
+         return Optional.of(attributeClass.cast(attribute));
       }
 
       if (attribute instanceof String)
@@ -323,7 +324,7 @@ public abstract class AbstractSpeechlet implements SpeechletV2
          ObjectMapper m = new ObjectMapper();
          try
          {
-            return m.readValue((String) attribute, attributeClass);
+            return Optional.of(m.readValue((String) attribute, attributeClass));
          }
          catch (IOException e)
          {
@@ -355,7 +356,7 @@ public abstract class AbstractSpeechlet implements SpeechletV2
             throw new SpeechletResponseThrowable(newSpeechletTellResponse(MSG_FATAL_ERROR));
          }
 
-         return result;
+         return Optional.of(result);
       }
 
       throw new IllegalArgumentException(
