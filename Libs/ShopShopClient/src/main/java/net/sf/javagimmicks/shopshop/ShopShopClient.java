@@ -3,11 +3,10 @@ package net.sf.javagimmicks.shopshop;
 import java.io.IOException;
 import java.util.List;
 
-import com.dd.plist.NSDictionary;
-import com.dd.plist.PropertyListFormatException;
 import com.dropbox.core.DbxException;
 import com.dropbox.core.DbxRequestConfig;
 import com.dropbox.core.v2.DbxClientV2;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import net.sf.javagimmicks.shopshop.util.ShopShopHelper;
 
@@ -15,7 +14,7 @@ public class ShopShopClient
 {
    final DbxClientV2 dropbox;
    private final String shoppingListName;
-   private final NSDictionary shoppingList;
+   private final ObjectNode shoppingList;
    
    public ShopShopClient(DbxClientV2 dropbox, String shoppingListName) throws ShopShopClientException
    {
@@ -25,7 +24,7 @@ public class ShopShopClient
       {
          this.shoppingList = ShopShopHelper.getShopShopList(dropbox, shoppingListName);
       }
-      catch (IOException | PropertyListFormatException | DbxException e)
+      catch (IOException | DbxException e)
       {
          throw new ShopShopClientException("Could not load shopping list from Dropbox!", e);
       }
