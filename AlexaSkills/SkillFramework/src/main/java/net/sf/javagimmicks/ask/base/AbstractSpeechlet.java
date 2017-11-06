@@ -85,7 +85,7 @@ public abstract class AbstractSpeechlet implements SpeechletV2
          r = e.getResponse();
       }
 
-      if (r != null && r.getShouldEndSession())
+      if (r != null && Boolean.TRUE.equals(r.getNullableShouldEndSession()))
       {
          onSessionEndedInternal(toSessionEndedRequest(requestEnvelope.getRequest()));
       }
@@ -114,7 +114,7 @@ public abstract class AbstractSpeechlet implements SpeechletV2
          r = e.getResponse();
       }
 
-      if (r != null && r.getShouldEndSession())
+      if (r != null && Boolean.TRUE.equals(r.getNullableShouldEndSession()))
       {
          onSessionEndedInternal(toSessionEndedRequest(requestEnvelope.getRequest()));
       }
