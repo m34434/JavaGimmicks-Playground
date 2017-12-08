@@ -9,6 +9,7 @@ import java.time.temporal.TemporalAmount;
 
 import org.quartz.JobDetail;
 import org.quartz.Trigger;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
@@ -18,6 +19,12 @@ import net.sf.javagimmicks.hwd.job.PingJob;
 @SpringBootApplication
 public class HomeWatchDogApplication
 {
+   @Value("${token}")
+   private String apiToken;
+   
+   @Value("${user}")
+   private String userId;
+
    /////// Basic stuff /////////
    public static void main(String[] args)
    {
@@ -27,7 +34,8 @@ public class HomeWatchDogApplication
    @Bean
    public Pushover pushover()
    {
-      return new Pushover();
+      System.out.printf("%s --- %s%n", apiToken, userId);
+      return new Pushover(apiToken, userId);
    }
 
    ///////// Job: Arlo Hub /////////

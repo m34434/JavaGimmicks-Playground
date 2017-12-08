@@ -8,15 +8,20 @@ import net.pushover.client.PushoverRestClient;
 
 public class Pushover
 {
-   private static final String API_TOKEN = "";
-   // private static final String USER_ID = "";
-   private static final String GROUP_ID = "";
-
+   private final String apiToken;
+   private final String userId;
+   
    private final PushoverClient p = new PushoverRestClient();
+
+   public Pushover(String apiToken, String userId)
+   {
+      this.apiToken = apiToken;
+      this.userId = userId;
+   }
 
    public Message newMessage()
    {
-      return new Message(API_TOKEN, GROUP_ID);
+      return new Message(apiToken, userId);
    }
    
    public class Message
